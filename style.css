@@ -1,0 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    font-size: 16px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* border: 1px solid red; */
+}
+
+body {
+    font-family: 'Exo 2', serif;
+}
+
+header {
+    text-align: center;
+    padding: 1rem;
+}
+
+/* Search Bar */
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+    position: relative;
+}
+
+#search-bar {
+    width: 250px;
+    max-width: 250px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+#search-button {
+    width: 50px;
+    border: 1px solid #ccc;
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+#clear-button {
+    width: 50px;
+    border: 1px solid #ccc;
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
+}
+
+#suggestions-container {
+    position: absolute;
+    top: calc(100%);
+    width: 250px;
+    background-color: white;
+    border: 1px solid #ccc;
+    overflow-y: auto;
+    z-index: 10;
+    max-height: 200px;
+    border-top: none;
+    left: 50%;
+    transform: translateX(-70%);
+}
+
+.suggestion {
+    position: relative;
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.suggestion:hover {
+    background-color: #f0f0f0;
+}
+
+/* Pokemon Container */
+#pokemon-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1280px;
+    margin: 0 auto;
+    gap: 16px;
+    padding: 4rem 8rem;
+    background-color: #ffffffcd;
+}
+
+/* Pokemon Card */
+.pokemon-card {
+    /* background-color: #bee7ff3f; */
+    border: 1px solid black;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    gap: 0.2rem;
+}
+
+.pokemon-card .top-container, .pokemon-card .bottom-container {
+    width: 100%;
+}
+
+.pokemon-card .top-container {
+    background-color: #fff;
+    height: 75%;
+}
+
+.pokemon-card .bottom-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 25%;
+}
+
+.pokemon-card .text-content {
+    display: inherit;
+    justify-content: end;
+    align-items: baseline;
+    gap: 0.2rem;
+}
+
+.pokemon-card .card-id {
+    color: #00000075;
+}
+
+.pokemon-card .card-types {
+    display: inherit;
+    justify-content: end;
+    gap: 0.5rem;
+}
+
+.pokemon-card img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
+
+.pokemon-card h2 {
+    font-size: 1.5rem;
+}
+
+/* Types */
+.type {
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    color: #fff;
+    margin: 0.25rem 0;
+}
+
+.type.normal {
+    background-color: #A8A77A;
+}
+
+.type.fire {
+    background-color: #EE8130;
+}
+
+.type.water {
+    background-color: #6390F0;
+}
+
+.type.electric {
+    background-color: #F7D02C;
+}
+
+.type.grass {
+    background-color: #7AC74C;
+}
+
+.type.ice {
+    background-color: #96D9D6;
+}
+
+.type.fighting {
+    background-color: #C22E28;
+}
+
+.type.poison {
+    background-color: #A33EA1;
+}
+
+.type.ground {
+    background-color: #E2BF65;
+}
+
+.type.flying {
+    background-color: #A98FF3;
+}
+
+.type.psychic {
+    background-color: #F95587;
+}
+
+.type.bug {
+    background-color: #A6B91A;
+}
+
+.type.rock {
+    background-color: #B6A136;
+}
+
+.type.ghost {
+    background-color: #735797;
+}
+
+.type.dragon {
+    background-color: #6F35FC;
+}
+
+.type.dark {
+    background-color: #705746;
+}
+
+.type.steel {
+    background-color: #B7B7CE;
+}
+
+.type.fairy {
+    background-color: #D685AD;
+}
+
+#loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    ;
+    z-index: 1000;
+}
+
+#loading-indicator {
+    display: none;
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 8px solid;
+    border-color: #000 #0000;
+    animation: l1 1s infinite;
+    margin: 1rem 0;
+}
+
+@keyframes l1 {
+    to {
+        transform: rotate(0.5turn)
+    }
+}

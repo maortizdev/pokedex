@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="./style.css">
+        <title>Another test</title>
+    </head>
+
+    <body>
+        <header>
+            <h1>Pokédex</h1>
+        </header>
+        <!-- Search Bar Container -->
+        <section class="search-container">
+            <input type="text" id="search-bar" placeholder="Search for a Pokémon" autocomplete="off">
+            <button id="search-button">Search</button>
+            <button id="clear-button">Clear</button>
+            <div id="suggestions-container"></div>
+        </section>
+
+        <!-- Main Pokemon Cards Container -->
+        <main id="pokemon-container">
+            <!-- Pokemon cards will be dynamically generated here -->
+        </main>
+
+        <!-- Loading Indicator Container -->
+        <div id="loading-container">
+            <div id="loading-indicator"></div>
+        </div>
+
+        <script src="app.js"></script>
+    </body>
+
+</html>
