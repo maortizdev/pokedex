@@ -33,8 +33,6 @@ const searchButton = document.querySelector('#search-button'); // Search button 
 const clearButton = document.querySelector('#clear-button'); // Clear button element
 const suggestionsContainer = document.querySelector('#suggestions-container'); // Container to display search suggestions
 const filtersContainer = document.querySelector('#filters-container');
-const typeFilters = document.querySelectorAll('.type-filter');
-const filterOptions = document.querySelectorAll('input[name="filter-option');
 
 
 /* =========================
@@ -44,7 +42,7 @@ const filterOptions = document.querySelectorAll('input[name="filter-option');
 const maxPokemon = 1025; // Total number of Pokémon
 const allPokemon = new Map(); // Map to store loaded Pokémon data
 const allPokemonNames = []; // Array to store all Pokémon names
-
+const selectedTypes = new Set();
 
 // State Variables for loading Pokémon in batches
 const batchSize = 25;
@@ -63,7 +61,10 @@ async function fetchPokemon(id) {
         const url = ENDPOINTS.pokemon(id);
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch Pokemon with ID ${id}`);
-        return await response.json();
+        const data = await response.json();
+
+        data.types = data.types.map(t => ({ type: { name: t.type.name } }));
+        return data;
     } catch (e) {
         console.error(e);
         return null;
@@ -191,11 +192,16 @@ async function createPokemonCard(data) {
 // Appends a list of Pokémon cards to the container
 async function appendPokemonCard(pokemonList) {
     const fragment = document.createDocumentFragment();
-    for (let i = 0; i < pokemonList.length; i += 10) {
-        const batch = await Promise.all(pokemonList.slice(i, i + 10).map(createPokemonCard));
-        batch.forEach(card => fragment.appendChild(card));
-        container.appendChild(fragment);
+    // for (let i = 0; i < pokemonList.length; i += 10) {
+    //     const batch = await Promise.all(pokemonList.slice(i, i + 10).map(createPokemonCard));
+    //     batch.forEach(card => fragment.appendChild(card));
+    //     container.appendChild(fragment);
+    // }
+    for (let i = 0; i < pokemonList.length; i++) {
+        const card = await createPokemonCard(pokemonList[i]);
+        fragment.appendChild(card);
     }
+    container.appendChild(fragment);
 }
 
 /* =========================
@@ -287,6 +293,30 @@ async function showSuggestions(query) {
         suggestionsContainer.appendChild(suggestion);
     }
 }
+async function filterPokemonByTypes() {
+    clearContainer();
+
+    if (selectedTypes.size === 0) {
+        appendPokemonCard(Array.from(allPokemon.values()));
+        return;
+    }
+
+    const filteredPokemon = Array.from(allPokemon.values()).filter(pokemon => {
+        // console.log(pokemon.types.map(t => t.type.name)); 
+        // return pokemon.types.some(t => selectedTypes.has(t.type.name));
+        return [...selectedTypes].every(selectedType =>
+            pokemon.types.some(t => t.type.name === selectedType)
+        );
+    });
+
+
+    if (filteredPokemon.length > 0) {
+        console.log(filteredPokemon)
+        await appendPokemonCard(filteredPokemon);
+    } else {
+        displayNoResultsMessage();
+    }
+}
 
 // Debounced version of showSuggestions to limit the rate of firing
 const debouncedShowSuggestions = debounce(showSuggestions, 300);
@@ -319,6 +349,19 @@ clearButton.addEventListener('click', () => {
     searchAndFilterPokemon('');
 });
 
+filtersContainer.addEventListener('change', (e) => {
+    if (e.target.classList.contains('type-filter')) {
+        const type = e.target.value;
+        if (e.target.checked) {
+            selectedTypes.add(type);
+            console.log(selectedTypes);
+        } else {
+            selectedTypes.delete(type);
+            console.log(selectedTypes)
+        }
+        filterPokemonByTypes();
+    }
+})
 
 // Infinite scroll to load more Pokémon when the user scrolls near the bottom of the page
 window.addEventListener('scroll', () => {
