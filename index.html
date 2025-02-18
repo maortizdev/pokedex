@@ -21,26 +21,58 @@
         </section>
 
         <section id="filters-container">
-            <h3>Filter by Type</h3>
+            <h3>Filter Options</h3>
             <div>
-                <label><input type="checkbox" class="type-filter" value="Normal"> Normal</label>
-                <label><input type="checkbox" class="type-filter" value="Fighting"> Fighting</label>
-                <label><input type="checkbox" class="type-filter" value="Flying"> Flying</label>
-                <label><input type="checkbox" class="type-filter" value="Poison"> Poison</label>
-                <label><input type="checkbox" class="type-filter" value="Ground"> Ground</label>
-                <label><input type="checkbox" class="type-filter" value="Rock"> Rock</label>
-                <label><input type="checkbox" class="type-filter" value="Bug"> Bug</label>
-                <label><input type="checkbox" class="type-filter" value="Ghost"> Ghost</label>
-                <label><input type="checkbox" class="type-filter" value="Steel"> Steel</label>
-                <label><input type="checkbox" class="type-filter" value="Fire"> Fire</label>
-                <label><input type="checkbox" class="type-filter" value="Water"> Water</label>
-                <label><input type="checkbox" class="type-filter" value="Grass"> Grass</label>
-                <label><input type="checkbox" class="type-filter" value="Electric"> Electric</label>
-                <label><input type="checkbox" class="type-filter" value="Psychic"> Psychic</label>
-                <label><input type="checkbox" class="type-filter" value="Ice"> Ice</label>
-                <label><input type="checkbox" class="type-filter" value="Dragon"> Dragon</label>
-                <label><input type="checkbox" class="type-filter" value="Dark"> Dark</label>
-                <label><input type="checkbox" class="type-filter" value="Fairy"> Fairy</label>
+                <label><input type="radio" name="filterMode" value="any" checked>Any Type</label>
+                <label><input type="radio" name="filterMode" value="double">Double Type</label>
+                <label><input type="radio" name="filterMode" value="single">Single Type</label>
+            </div>
+            <h3>Select Type(s)</h3>
+            <div id="type-checkboxes">
+                <!-- Checkbox list for first typing -->
+                <label><input type="checkbox" class="type-filter" value="normal"> Normal</label>
+                <label><input type="checkbox" class="type-filter" value="fighting"> Fighting</label>
+                <label><input type="checkbox" class="type-filter" value="flying"> Flying</label>
+                <label><input type="checkbox" class="type-filter" value="poison"> Poison</label>
+                <label><input type="checkbox" class="type-filter" value="ground"> Ground</label>
+                <label><input type="checkbox" class="type-filter" value="rock"> Rock</label>
+                <label><input type="checkbox" class="type-filter" value="bug"> Bug</label>
+                <label><input type="checkbox" class="type-filter" value="ghost"> Ghost</label>
+                <label><input type="checkbox" class="type-filter" value="steel"> Steel</label>
+                <label><input type="checkbox" class="type-filter" value="fire"> Fire</label>
+                <label><input type="checkbox" class="type-filter" value="water"> Water</label>
+                <label><input type="checkbox" class="type-filter" value="grass"> Grass</label>
+                <label><input type="checkbox" class="type-filter" value="electric"> Electric</label>
+                <label><input type="checkbox" class="type-filter" value="psychic"> Psychic</label>
+                <label><input type="checkbox" class="type-filter" value="ice"> Ice</label>
+                <label><input type="checkbox" class="type-filter" value="dragon"> Dragon</label>
+                <label><input type="checkbox" class="type-filter" value="dark"> Dark</label>
+                <label><input type="checkbox" class="type-filter" value="fairy"> Fairy</label>
+            </div>
+            <div id="second-type-checkboxes" style="display: none;">
+                <h3>Select Second Type</h3>
+                <!-- Checkbox list for second typing (hidden initially) -->
+                <label><input type="checkbox" class="second-type-filter" value="normal"> Normal</label>
+                <label><input type="checkbox" class="second-type-filter" value="fighting"> Fighting</label>
+                <label><input type="checkbox" class="second-type-filter" value="flying"> Flying</label>
+                <label><input type="checkbox" class="second-type-filter" value="poison"> Poison</label>
+                <label><input type="checkbox" class="second-type-filter" value="ground"> Ground</label>
+                <label><input type="checkbox" class="second-type-filter" value="rock"> Rock</label>
+                <label><input type="checkbox" class="second-type-filter" value="bug"> Bug</label>
+                <label><input type="checkbox" class="second-type-filter" value="ghost"> Ghost</label>
+                <label><input type="checkbox" class="second-type-filter" value="steel"> Steel</label>
+                <label><input type="checkbox" class="second-type-filter" value="fire"> Fire</label>
+                <label><input type="checkbox" class="second-type-filter" value="water"> Water</label>
+                <label><input type="checkbox" class="second-type-filter" value="grass"> Grass</label>
+                <label><input type="checkbox" class="second-type-filter" value="electric"> Electric</label>
+                <label><input type="checkbox" class="second-type-filter" value="psychic"> Psychic</label>
+                <label><input type="checkbox" class="second-type-filter" value="ice"> Ice</label>
+                <label><input type="checkbox" class="second-type-filter" value="dragon"> Dragon</label>
+                <label><input type="checkbox" class="second-type-filter" value="dark"> Dark</label>
+                <label><input type="checkbox" class="second-type-filter" value="fairy"> Fairy</label>
+            </div>
+            <div id="filter-actions">
+                <button id="apply-filters">Apply Filters</button>
             </div>
         </section>
 
