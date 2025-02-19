@@ -1,32 +1,39 @@
-// Ability Filter
-// TODO: Work on abilities filter
-// state.selectedAbility already declared
-// TODO: Fetch and Populate Abilities.
-// Create an async function to fetch and populate abilities in a dropdown
-// fetch abilities endpoint
-// data.results.map(ability => abiltiy.name):[]
-// create an async funciton populateAbilitiesdropdown
-// create a dropdown element in html id abilities-dropdown
-// abilities = await fetchallbao
-// for each abiltiy => .option createelement => value ability => textcontent cpaitlaizename(ability) => appendchild option
-// TODO: Filter pokemon by abilities
-// use the abilities array in each pokemons data to filter them
-// filterByAbility function(pokemon, selectedAbility) .some => === selectedAbility
+// Generation Filter
+
+// TODO: Fetch generation data from the species endpoint
+// PokeAPI provides generation info as {generation: {name: "generation-i"}}
+
+// TODO: Map generation names to IDs for the dropdown
+// Example: {"generation-i": "1"}
+
+// TODO: Create a dropdown menu for generation filter
+// Place it above the Pokémon list and style it consistently with other filters.
+// select#generation-filter -> option[Generation 1].value(generation-i), etc.
+
+// TODO: Add generation info to Pokémon data during fetch
+// Decide whether to pre-fetch or fetch lazily for performance.
+
+// TODO: Write filtering logic for generation
+// Combine results with other active filters (e.g., types, weaknesses, etc.)
 
 /* =========================
     Constants
    ========================= */
+// Base URL for PokeAPI
 const POKE_API_BASE = 'https://pokeapi.co/api/v2';
+// API endpoints for specific data
 const ENDPOINTS = {
-    pokemon: (id) => `${POKE_API_BASE}/pokemon/${id}`, // Endpoint to fetch a specific Pokémon by ID
-    species: (id) => `${POKE_API_BASE}/pokemon-species/${id}`, // Endpoint to fetch a specific Pokémon species by ID
-    types: (name) => `${POKE_API_BASE}/type/${name}`, // Endpoint to fetch a specific type by name
-    allPokemon: () => `${POKE_API_BASE}/pokemon?limit=1000` // Endpoint to fetch all Pokémon names
+    pokemon: (id) => `${POKE_API_BASE}/pokemon/${id}`, // Fetch Pokémon by ID
+    species: (id) => `${POKE_API_BASE}/pokemon-species/${id}`, // Fetch Pokémon species by ID
+    types: (name) => `${POKE_API_BASE}/type/${name}`, // Fetch type details by name
+    abilities: () => `${POKE_API_BASE}/ability?limit=1000`, // Fetch all abilities
+    allPokemon: () => `${POKE_API_BASE}/pokemon?limit=1000`, // Fetch all Pokémon names
 };
 
 /* =========================
     Name Corrections
    ========================= */
+// Manual corrections for Pokémon names with special formatting
 const NAME_CORRECTIONS = {
     "ho-oh": "Ho-Oh",
     "farfetchd": "Farfetch'd",
@@ -38,10 +45,10 @@ const NAME_CORRECTIONS = {
     "porygon-z": "Porygon-Z"
 };
 
-
 /* =========================
     DOM Elements
    ========================= */
+// Cached references to frequently accessed DOM elements
 const DOMElements = {
     container: document.querySelector('#pokemon-container'),
     suggestionsContainer: document.querySelector('#suggestions-container'),
@@ -51,30 +58,31 @@ const DOMElements = {
     applyFilters: document.querySelector('#apply-filters'),
     filterRadios: document.querySelectorAll('input[name="filterMode"]'),
     typeCheckboxes: document.querySelector('#type-checkboxes'),
-    secondTypeCheckboxes: document.querySelector('#second-type-checkboxes')
+    secondTypeCheckboxes: document.querySelector('#second-type-checkboxes'),
+    abilitiesDropdown: document.querySelector('#abilities-dropdown')
 };
 
 /* =========================
     State Variables
    ========================= */
+// Application state for dynamic behavior and caching
 const state = {
-    allPokemon: new Map(), // Map to store loaded Pokémon data
-    allPokemonNames: [], // Array to store all Pokémon names
-    selectedTypes: new Set(),
-    selectedSecondTypeSet: new Set(),
-    batchSize: 1025,
-    currentOffset: 1,
-    isSearchMode: false,
-    isLoading: false,
-    selectedPokemonApiName: "",
-    selectedAbility: null
+    allPokemon: new Map(), // Stores fetched Pokémon data
+    allPokemonNames: [], // List of Pokémon names for suggestions and search
+    selectedTypes: new Set(), // Selected primary types for filtering
+    selectedSecondTypeSet: new Set(), // Selected secondary types for filtering
+    batchSize: 1025, // Number of Pokémon to fetch per batch
+    currentOffset: 1, // Current offset for batch loading
+    isSearchMode: false, // Whether the app is in search mode
+    isLoading: false, // Loading state for UI feedback
+    selectedPokemonApiName: "", // Selected Pokémon for detailed view
+    selectedAbility: null // Selected ability for filtering
 };
 
 /* =========================
     Fetch Functions
    ========================= */
-
-// Fetch data boilerplate
+// Fetches data from a given URL with error handling
 async function fetchData(url) {
     try {
         const response = await fetch(url);
@@ -85,17 +93,23 @@ async function fetchData(url) {
     }
 };
 
-// Fetch Pokémon data from the PokeAPI Pokemon endpoint
+// Fetch Pokémon data by ID
 function fetchPokemon(id) {
     return fetchData(ENDPOINTS.pokemon(id));
 };
 
-// Fetch Pokémon Species data from the PokeAPI Pokemon endpoint
+// Fetch Pokémon species data by ID
 function fetchPokemonSpecies(id) {
     return fetchData(ENDPOINTS.species(id));
 };
 
-// Fetch Pokémon data from the PokeAPI Pokemon endpoint
+// Fetch all abilities
+async function fetchAbilities() {
+    const data = await fetchData(ENDPOINTS.abilities());
+    return data ? data.results.map(abilitiy => abilitiy.name) : [];
+};
+
+// Fetch all Pokémon names
 async function fetchAllPokemonNames() {
     const data = await fetchData(ENDPOINTS.allPokemon());
     return data ? data.results.map(pokemon => pokemon.name) : [];
@@ -104,15 +118,20 @@ async function fetchAllPokemonNames() {
 /* =========================
     Utility Functions
    ========================= */
+// Capitalizes and formats a given name
 function capitalizeName(name) {
-    return name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
+    return name
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
 
+// Gets a display name for Pokémon, applying corrections if necessary
 function getDisplayName(apiName) {
     return NAME_CORRECTIONS[apiName] || capitalizeName(apiName);
 }
 
-// Debounce function to limit the rate at which a function can fire
+// Debounce function to limit the rate of function calls
 function debounce(fn, delay) {
     let debounceTimer;
     return function (...args) {
@@ -127,30 +146,53 @@ function searchButtonFunction() {
     searchAndFilterPokemon(apiNameToUse);
 }
 
+/* =========================
+    Filtering Functions
+   ========================= */
+// Filter Pokémon by selected types (single or dual)
 function filterByAnyType(pokemon, selectedFirstTypes) {
-    return selectedFirstTypes.some(type => pokemon.types.some(t => t.type.name === type))
+    return selectedFirstTypes.some(type =>
+        pokemon.types.some(t => t.type.name === type))
 }
 
+// Filter Pokémon with dual types
 function filterByDoubleType(pokemon, selectedFirstTypes, selectedSecondTypes) {
     return pokemon.types.length === 2 &&
         selectedFirstTypes.some(type => pokemon.types.some(t => t.type.name === type)) &&
         selectedSecondTypes.some(type => pokemon.types.some(t => t.type.name === type))
 }
+
+// Filter Pokémon with a single type
 function filterBySingleType(pokemon, selectedFirstTypes) {
-    return pokemon.types.length === 1 && // Filter pokemon with only one type
+    return pokemon.types.length === 1 &&
         selectedFirstTypes.includes(pokemon.types[0].type.name)
+}
+
+// Filter Pokémon by ability
+function filterByAbility(pokemon, selectedAbility) {
+    return pokemon.abilities.some(a =>
+        a.ability.name === selectedAbility);
+};
+
+function getSelectedTypes() {
+    return Array.from(DOMElements.typeCheckboxes)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+}
+
+function getSelectedAbility() {
+    return DOMElements.abilitiesDropdown.value || null;
 }
 
 /* =========================
     DOM Manipulation Functions
    ========================= */
-
-// Clears the Pokémon container
+// Clears Pokémon cards from the container
 function clearContainer() {
     DOMElements.container.innerHTML = '';
 }
 
-// Clears the suggestions container
+// Displays a "No Pokémon found" message
 function clearSuggestionsContainer() {
     DOMElements.suggestionsContainer.innerHTML = '';
 }
@@ -163,7 +205,7 @@ function displayNoResultsMessage() {
 }
 function selectSecondTypeMessage() {
     const selectSecondTypeMessage = document.createElement('p');
-    selectSecondTypeMessage.textContent = 'Please, select second type.';
+    selectSecondTypeMessage.textContent = 'Please, select a second type.';
     DOMElements.container.appendChild(selectSecondTypeMessage);
 }
 
@@ -319,70 +361,62 @@ async function showSuggestions(query) {
     }
 }
 
-async function filterPokemonByTypes() {
-    clearContainer();
+async function populateAbilitiesDropdown() {
+    const abilities = await fetchAbilities();
+    const sortedAbilities = abilities.sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+    sortedAbilities.forEach(ability => {
+        const option = document.createElement('option');
+        option.value = ability;
+        option.textContent = capitalizeName(ability);
+        DOMElements.abilitiesDropdown.appendChild(option);
+    })
+};
 
-    const filterMode = document.querySelector('input[name="filterMode"]:checked').value;
+function applyAllFilters() {
+    clearContainer();
+    let filteredPokemon = Array.from(state.allPokemon.values());
+
+    // Apply the Ability Filter
+    const selectedAbility = DOMElements.abilitiesDropdown.value;
+    if (selectedAbility) {
+        filteredPokemon = filteredPokemon.filter(pokemon =>
+            pokemon.abilities.some(a => a.ability.name === selectedAbility)
+        )
+    }
+
+    // Apply the Type Filter
+    const filterMode = document.querySelector('input[name="filterMode"]:checked')?.value;
     const selectedFirstTypes = Array.from(state.selectedTypes);
     const selectedSecondTypes = Array.from(state.selectedSecondTypeSet || []);
 
-    let filteredPokemonList = [];
-
-    // If no types are selected, show all pokemon
-    if (selectedFirstTypes.length === 0) {
-        await appendPokemonCard(Array.from(state.allPokemon.values()));
-        return;
-    }
-
-    switch (filterMode) {
-        case 'any':
-            filteredPokemonList = Array.from(state.allPokemon.values()).filter(pokemon =>
-                filterByAnyType(pokemon, selectedFirstTypes));
-            break;
-        case 'double':
-            if (selectedSecondTypes.length === 0) {
-                selectSecondTypeMessage();
-                return;
-            }
-            filteredPokemonList = Array.from(state.allPokemon.values()).filter(pokemon =>
-                filterByDoubleType(pokemon, selectedFirstTypes, selectedSecondTypes));
-            break;
-        case 'single':
-            filteredPokemonList = Array.from(state.allPokemon.values()).filter(pokemon =>
-                filterBySingleType(pokemon, selectedFirstTypes));
-            break;
-        default:
-            console.error(`Unknown filter mode: ${filterMode}`);
+    if (selectedFirstTypes.length > 0) {
+        if (filterMode === 'double' && !selectedSecondTypes.length) {
+            selectSecondTypeMessage();
             return;
+        };
+
+        const filterFunctions = {
+            any: (pokemon) => filterByAnyType(pokemon, selectedFirstTypes),
+            double: (pokemon) => filterByDoubleType(pokemon, selectedFirstTypes, selectedSecondTypes),
+            single: (pokemon) => filterBySingleType(pokemon, selectedFirstTypes)
+        };
+
+        const filterFunction = filterFunctions[filterMode];
+        if (filterFunction) {
+            filteredPokemon = filteredPokemon.filter(filterFunction)
+        } else {
+            console.error(`Unknown filter mode: ${filterMode}`);
+        }
     }
 
-    try {
-        if (filteredPokemonList.length > 0) {
-            filteredPokemonList.sort((a, b) => a.id - b.id);
-            // loadFilteredPokemonBatch();
-            await appendPokemonCard(filteredPokemonList)
-        } else {
-            displayNoResultsMessage();
-        }
-    } catch (error) {
-        console.error('Error while filtering Pokémon:', error);
+    if (filteredPokemon.length > 0) {
+        appendPokemonCard(filteredPokemon);
+    } else {
+        displayNoResultsMessage();
     }
 }
-
-// async function loadFilteredPokemonBatch() {
-// const filteredPokemonOffset = 0;
-//     // if (isLoading) return;
-//     state.isLoading = true;
-//     setLoading(true);
-
-//     const batch = filteredPokemonList.slice(filteredPokemonOffset, filteredPokemonOffset + state.batchSize);
-//     await appendPokemonCard(batch);
-//     filteredPokemonOffset += state.batchSize;
-
-//     state.isLoading = false;
-//     setLoading(false);
-// }
-
 
 // Debounced version of showSuggestions to limit the rate of firing
 const debouncedShowSuggestions = debounce(showSuggestions, 300);
@@ -441,7 +475,7 @@ DOMElements.secondTypeCheckboxes.addEventListener('change', (e) => {
     }
 })
 
-DOMElements.applyFilters.addEventListener('click', filterPokemonByTypes);
+DOMElements.applyFilters.addEventListener('click', applyAllFilters);
 
 // Event Listener for Radio Buttons
 DOMElements.filterRadios.forEach(radio => {
@@ -457,7 +491,6 @@ DOMElements.filterRadios.forEach(radio => {
     })
 })
 
-
 // Infinite scroll to load more Pokémon when the user scrolls near the bottom of the page
 window.addEventListener('scroll', debounce(() => {
     if (state.isSearchMode || state.isLoading) return;
@@ -469,6 +502,7 @@ window.addEventListener('scroll', debounce(() => {
 // Initial load of Pokémon names and the first batch of Pokémon data
 document.addEventListener('DOMContentLoaded', async () => {
     state.allPokemonNames.push(...await fetchAllPokemonNames());
+    populateAbilitiesDropdown();
     loadPokemon();
 });
 
