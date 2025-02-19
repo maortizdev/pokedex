@@ -1,20 +1,4 @@
-// Generation Filter
 
-// TODO: Fetch generation data from the species endpoint
-// PokeAPI provides generation info as {generation: {name: "generation-i"}}
-
-// TODO: Map generation names to IDs for the dropdown
-// Example: {"generation-i": "1"}
-
-// TODO: Create a dropdown menu for generation filter
-// Place it above the Pokémon list and style it consistently with other filters.
-// select#generation-filter -> option[Generation 1].value(generation-i), etc.
-
-// TODO: Add generation info to Pokémon data during fetch
-// Decide whether to pre-fetch or fetch lazily for performance.
-
-// TODO: Write filtering logic for generation
-// Combine results with other active filters (e.g., types, weaknesses, etc.)
 
 /* =========================
     Constants
@@ -45,6 +29,18 @@ const NAME_CORRECTIONS = {
     "porygon-z": "Porygon-Z"
 };
 
+const generationMap = {
+    "generation-i": "1",
+    "generation-ii": "2",
+    "generation-iii": "3",
+    "generation-iv": "4",
+    "generation-v": "5",
+    "generation-vi": "6",
+    "generation-vii": "7",
+    "generation-viii": "8",
+    "generation-ix": "9"
+};
+
 /* =========================
     DOM Elements
    ========================= */
@@ -59,7 +55,8 @@ const DOMElements = {
     filterRadios: document.querySelectorAll('input[name="filterMode"]'),
     typeCheckboxes: document.querySelector('#type-checkboxes'),
     secondTypeCheckboxes: document.querySelector('#second-type-checkboxes'),
-    abilitiesDropdown: document.querySelector('#abilities-dropdown')
+    abilitiesDropdown: document.querySelector('#abilities-dropdown'),
+    generationsDropdown: document.querySelector('#generations-dropdown')
 };
 
 /* =========================
@@ -99,7 +96,7 @@ function fetchPokemon(id) {
 };
 
 // Fetch Pokémon species data by ID
-function fetchPokemonSpecies(id) {
+function fetchSpecies(id) {
     return fetchData(ENDPOINTS.species(id));
 };
 
@@ -278,15 +275,22 @@ async function loadPokemon() {
     // console.time('Load Pokémon Batch'); // Start timing
     const pokemonList = [];
     const maxPokemon = 1025; // Total number of Pokémon
+
     for (let i = state.currentOffset; i < state.currentOffset + state.batchSize && i <= maxPokemon; i++) {
         // for (let i = state.currentOffset; i <= maxPokemon; i++) {
         try {
-            const data = await fetchPokemon(i);
-            if (data) {
-                state.allPokemon.set(data.name.toLowerCase(), data);
-                const dataTypes = data.types.every(t => state.selectedTypes.has(t.type.name));
+            const pokemon = await fetchPokemon(i);
+            const species = await fetchSpecies(i)
+            if (pokemon && species) {
+                const generation = generationMap[species.generation.name];
+                const enrichedPokemon = {
+                    ...pokemon,
+                    generation,
+                }
+                state.allPokemon.set(pokemon.name.toLowerCase(), enrichedPokemon);
+                const dataTypes = pokemon.types.every(t => state.selectedTypes.has(t.type.name));
                 if (state.selectedTypes.size === 0 || dataTypes) {
-                    pokemonList.push(data);
+                    pokemonList.push(enrichedPokemon);
                 }
             }
         } catch (e) {
@@ -361,6 +365,17 @@ async function showSuggestions(query) {
     }
 }
 
+async function populateGenerationsDropdown() {
+    const generations = Object.entries(generationMap);
+
+    generations.forEach(([apiName, displayName]) => {
+        const option = document.createElement('option');
+        option.value = apiName;
+        option.textContent = `Generation ${displayName}`
+        DOMElements.generationsDropdown.appendChild(option);
+    })
+}
+
 async function populateAbilitiesDropdown() {
     const abilities = await fetchAbilities();
     const sortedAbilities = abilities.sort((a, b) =>
@@ -377,6 +392,14 @@ async function populateAbilitiesDropdown() {
 function applyAllFilters() {
     clearContainer();
     let filteredPokemon = Array.from(state.allPokemon.values());
+
+    // Apply the Generations Filter
+    const selectedGeneration = DOMElements.generationsDropdown.value;
+    if (selectedGeneration) {
+        filteredPokemon = filteredPokemon.filter(pokemon =>
+            pokemon.generation === generationMap[selectedGeneration]
+        );
+    }
 
     // Apply the Ability Filter
     const selectedAbility = DOMElements.abilitiesDropdown.value;
@@ -502,6 +525,7 @@ window.addEventListener('scroll', debounce(() => {
 // Initial load of Pokémon names and the first batch of Pokémon data
 document.addEventListener('DOMContentLoaded', async () => {
     state.allPokemonNames.push(...await fetchAllPokemonNames());
+    populateGenerationsDropdown();
     populateAbilitiesDropdown();
     loadPokemon();
 });
