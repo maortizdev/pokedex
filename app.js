@@ -1,4 +1,4 @@
-
+// TODO: Change pokemon's number to regional based on selected version
 
 /* =========================
     Constants
@@ -7,11 +7,12 @@
 const POKE_API_BASE = 'https://pokeapi.co/api/v2';
 // API endpoints for specific data
 const ENDPOINTS = {
-    pokemon: (id) => `${POKE_API_BASE}/pokemon/${id}`, // Fetch Pokémon by ID
+    pokemon: (name) => `${POKE_API_BASE}/pokemon/${name}`, // Fetch Pokémon by ID
+    allPokemon: () => `${POKE_API_BASE}/pokemon?limit=1000`, // Fetch all Pokémon names
     species: (id) => `${POKE_API_BASE}/pokemon-species/${id}`, // Fetch Pokémon species by ID
     types: (name) => `${POKE_API_BASE}/type/${name}`, // Fetch type details by name
     abilities: () => `${POKE_API_BASE}/ability?limit=1000`, // Fetch all abilities
-    allPokemon: () => `${POKE_API_BASE}/pokemon?limit=1000`, // Fetch all Pokémon names
+    pokedexes: (id) => `${POKE_API_BASE}/pokedex/${id}`
 };
 
 /* =========================
@@ -41,6 +42,86 @@ const generationMap = {
     "generation-ix": "9"
 };
 
+const FORM_CORRECTIONS = {
+    "deoxys": "deoxys-normal",
+    "wormadam": "wormadam-plant",
+    "basculin": "basculin-red-striped",
+    "darmanitan": "darmanitan-standard",
+    "tornadus": "tornadus-incarnate",
+    "thundurus": "thundurus-incarnate",
+    "landorus": "landorus-incarnate",
+    "keldeo": "keldeo-ordinary",
+    "meloetta": "meloetta-aria",
+    "meowstic": "meowstic-male",
+    "aegislash": "aegislash-shield",
+    "oricorio": "oricorio-baile",
+    "lycanroc": "lycanroc-midday",
+    "wishiwashi": "wishiwashi-solo",
+    "zygarde": "zygarde-50",
+    "minior": "minior-red-meteor",
+    "mimikyu": "mimikyu-disguised",
+    "pumpkaboo": "pumpkaboo-average",
+    "gourgeist": "gourgeist-average",
+    "toxtricity": "toxtricity-amped",
+    "indeedee": "indeedee-male",
+    "morpeko": "morpeko-full-belly",
+    "eiscue": "eiscue-ice",
+    "oinkologne": "oinkologne-male",
+    "maushold": "maushold-family-of-four",
+    "squawkabilly": "squawkabilly-green-plumage",
+    "dudunsparce": "dudunsparce-two-segment",
+    "palafin": "palafin-hero",
+    "tatsugiri": "tatsugiri-curly",
+    "giratina": "giratina-altered",
+    "basculegion": "basculegion-male",
+    "enamorus": "enamorus-incarnate",
+    "shaymin": "shaymin-land",
+    "urshifu": "urshifu-single-strike"
+};
+
+const GAME_GROUPS = {
+    mainGames: [
+        { label: "Red/Blue", value: "red-blue", pokedexId: 2 },
+        { label: "Gold/Silver", value: "gold-silver", pokedexId: 3 },
+        { label: "Ruby/Sapphire", value: "ruby-sapphire", pokedexId: 4 },
+        { label: "Diamond/Pearl", value: "diamond-pearl", pokedexId: 5 },
+        { label: "Black/White", value: "black-white", pokedexId: 8 },
+        { label: "X/Y", value: "x-y", pokedexId: 12 },
+        { label: "Sun/Moon", value: "sun-moon", pokedexId: 16 },
+        { label: "Sword/Shield", value: "sword-shield", pokedexId: 27 },
+        { label: "Scarlet/Violet", value: "scarlet-violet", pokedexId: 31 }
+    ],
+    thirdVersions: [
+        { label: "Yellow", value: "yellow", pokedexId: 2 },
+        { label: "Crystal", value: "crystal", pokedexId: 3 },
+        { label: "Emerald", value: "emerald", pokedexId: 4 },
+        { label: "Platinum", value: "platinum", pokedexId: 6 }
+    ],
+    remakes: [
+        { label: "FireRed/LeafGreen", value: "firered-leafgreen", pokedexId: 2 },
+        { label: "HeartGold/SoulSilver", value: "heartgold-soulsilver", pokedexId: 7 },
+        { label: "Omega Ruby/Alpha Sapphire", value: "omega-ruby-alpha-sapphire", pokedexId: 15 },
+        { label: "Let's Go Pikachu/Let's Go Eevee", value: "lets-go-pikachu-lets-go-eevee", pokedexId: 26 },
+        { label: "Brilliant Diamond/Shining Pearl", value: "brilliant-diamond-shining-pearl", pokedexId: 5 }
+    ],
+    sequels: [
+        { label: "Black 2/White 2", value: "black-2-white-2", pokedexId: 9 },
+        { label: "Ultra Sun/Ultra Moon", value: "ultra-sun-ultra-moon", pokedexId: 21 }
+    ],
+    spinOffs: [
+        { label: "Legends: Arceus", value: "legends-arceus", pokedexId: 30 }
+    ],
+    dlcs: {
+        swordShield: [
+            { label: "The Isle of Armor", value: "the-isle-of-armor", pokedexId: 28 },
+            { label: "The Crown Tundra", value: "the-crown-tundra", pokedexId: 29 }
+        ],
+        scarletViolet: [
+            { label: "The Teal Mask", value: "the-teal-mask", pokedexId: 32 },
+            { label: "The Indigo Disk", value: "the-indigo-disk", pokedexId: 33 }
+        ]
+    }
+};
 /* =========================
     DOM Elements
    ========================= */
@@ -56,7 +137,8 @@ const DOMElements = {
     typeCheckboxes: document.querySelector('#type-checkboxes'),
     secondTypeCheckboxes: document.querySelector('#second-type-checkboxes'),
     abilitiesDropdown: document.querySelector('#abilities-dropdown'),
-    generationsDropdown: document.querySelector('#generations-dropdown')
+    generationsDropdown: document.querySelector('#generations-dropdown'),
+    versionGroupsDropdown: document.querySelector('#version-groups-dropdown')
 };
 
 /* =========================
@@ -91,8 +173,9 @@ async function fetchData(url) {
 };
 
 // Fetch Pokémon data by ID
-function fetchPokemon(id) {
-    return fetchData(ENDPOINTS.pokemon(id));
+function fetchPokemon(name) {
+    const correctedNames = FORM_CORRECTIONS[name] || name;
+    return fetchData(ENDPOINTS.pokemon(correctedNames));
 };
 
 // Fetch Pokémon species data by ID
@@ -105,6 +188,11 @@ async function fetchAbilities() {
     const data = await fetchData(ENDPOINTS.abilities());
     return data ? data.results.map(abilitiy => abilitiy.name) : [];
 };
+
+async function fetchPokedex(id) {
+    const data = await fetchData(ENDPOINTS.pokedexes(id));
+    return data.pokemon_entries.map(entry => entry.pokemon_species);
+}
 
 // Fetch all Pokémon names
 async function fetchAllPokemonNames() {
@@ -164,12 +252,6 @@ function filterBySingleType(pokemon, selectedFirstTypes) {
     return pokemon.types.length === 1 &&
         selectedFirstTypes.includes(pokemon.types[0].type.name)
 }
-
-// Filter Pokémon by ability
-function filterByAbility(pokemon, selectedAbility) {
-    return pokemon.abilities.some(a =>
-        a.ability.name === selectedAbility);
-};
 
 function getSelectedTypes() {
     return Array.from(DOMElements.typeCheckboxes)
@@ -365,6 +447,19 @@ async function showSuggestions(query) {
     }
 }
 
+function createOptGroup(label, options) {
+    const optGroup = document.createElement('optgroup');
+    optGroup.label = label;
+
+    options.forEach(option => {
+        const opt = document.createElement('option');
+        opt.value = option.value;
+        opt.textContent = option.label;
+        optGroup.appendChild(opt);
+    });
+    return optGroup
+}
+
 async function populateGenerationsDropdown() {
     const generations = Object.entries(generationMap);
 
@@ -389,7 +484,57 @@ async function populateAbilitiesDropdown() {
     })
 };
 
-function applyAllFilters() {
+async function populateVersionGroupsDropdown() {
+    DOMElements.versionGroupsDropdown.appendChild(createOptGroup('Main Games', GAME_GROUPS.mainGames));
+    DOMElements.versionGroupsDropdown.appendChild(createOptGroup('Third Versions', GAME_GROUPS.thirdVersions));
+    DOMElements.versionGroupsDropdown.appendChild(createOptGroup('Sequels', GAME_GROUPS.sequels));
+    DOMElements.versionGroupsDropdown.appendChild(createOptGroup('Remakes', GAME_GROUPS.remakes));
+    DOMElements.versionGroupsDropdown.appendChild(createOptGroup('Spin Offs', GAME_GROUPS.spinOffs));
+    DOMElements.versionGroupsDropdown.appendChild(createOptGroup('Sword/Shield DLC', GAME_GROUPS.dlcs.swordShield));
+    DOMElements.versionGroupsDropdown.appendChild(createOptGroup('Scarlet/Violet DLC', GAME_GROUPS.dlcs.scarletViolet));
+}
+
+function flattenGameGroups(groups) {
+    const flattened = [];
+
+    for (const key in groups) {
+        if (Array.isArray(groups[key])) {
+            flattened.push(...groups[key]);
+        } else if (typeof groups[key] === 'object') {
+            for (const subkey in groups[key]) {
+                flattened.push(...groups[key][subkey]);
+            }
+        }
+    }
+    return flattened;
+}
+
+async function handleVersionGroupSelection(selectedVersionGroup) {
+    const allGroups = flattenGameGroups(GAME_GROUPS);
+    const selectedGroup = allGroups.find(group => group.value === selectedVersionGroup);
+    console.log(selectedGroup);
+
+    if (!selectedGroup) return;
+
+    const pokedexId = selectedGroup.pokedexId;
+    const pokemonSpecies = await fetchPokedex(pokedexId);
+    console.log(selectedGroup.pokedexId);
+
+    const filteredPokemon = [];
+    for (const species of pokemonSpecies) {
+        try {
+            const pokemonDetails = await fetchPokemon(species.name);
+            console.log(pokemonDetails);
+            filteredPokemon.push(pokemonDetails);
+        } catch (error) {
+            console.error(`Error fetching Pokémon: ${species.name}`, error);
+        }
+    }
+    clearContainer();
+    await appendPokemonCard(filteredPokemon);
+}
+
+async function applyAllFilters() {
     clearContainer();
     let filteredPokemon = Array.from(state.allPokemon.values());
 
@@ -407,6 +552,13 @@ function applyAllFilters() {
         filteredPokemon = filteredPokemon.filter(pokemon =>
             pokemon.abilities.some(a => a.ability.name === selectedAbility)
         )
+    }
+
+    // Apply the Version Groups Filter
+    const selectedVersionGroup = DOMElements.versionGroupsDropdown.value;
+    if (selectedVersionGroup) {
+        await handleVersionGroupSelection(selectedVersionGroup);
+        return;
     }
 
     // Apply the Type Filter
@@ -522,11 +674,13 @@ window.addEventListener('scroll', debounce(() => {
     }
 }, 200));
 
-// Initial load of Pokémon names and the first batch of Pokémon data
-document.addEventListener('DOMContentLoaded', async () => {
+async function main() {
     state.allPokemonNames.push(...await fetchAllPokemonNames());
     populateGenerationsDropdown();
     populateAbilitiesDropdown();
-    loadPokemon();
-});
+    populateVersionGroupsDropdown();
+    await loadPokemon();
+}
 
+// Initial load of Pokémon names and the first batch of Pokémon data
+document.addEventListener('DOMContentLoaded', main);
