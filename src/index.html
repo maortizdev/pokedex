@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="./styles/styles.css">
+        <title>Pokédex</title>
+    </head>
+
+    <body>
+        <header>
+            <h1>Pokedex</h1>
+        </header>
+
+        <section class="search-container">
+            <input type="text" id="search-input" placeholder="Search for a Pokémon" autocomplete="off">
+            <button id="search-button">Search</button>
+            <button id="clear-button">Clear</button>
+            <div id="suggestions-container"></div>
+        </section>
+
+        <section id="filters-container">
+            <div id="types-container">
+                <h3>Filter Options</h3>
+                <div>
+                    <label><input type="radio" name="filterMode" value="any" checked>Any Type</label>
+                    <label><input type="radio" name="filterMode" value="double">Double Type</label>
+                    <label><input type="radio" name="filterMode" value="single">Single Type</label>
+                </div>
+                <h3>Select Type(s)</h3>
+                <div id="type-checkboxes">
+                    <!-- Checkbox list for first typing -->
+                    <label><input type="checkbox" class="type-filter" value="normal"> Normal</label>
+                    <label><input type="checkbox" class="type-filter" value="fighting"> Fighting</label>
+                    <label><input type="checkbox" class="type-filter" value="flying"> Flying</label>
+                    <label><input type="checkbox" class="type-filter" value="poison"> Poison</label>
+                    <label><input type="checkbox" class="type-filter" value="ground"> Ground</label>
+                    <label><input type="checkbox" class="type-filter" value="rock"> Rock</label>
+                    <label><input type="checkbox" class="type-filter" value="bug"> Bug</label>
+                    <label><input type="checkbox" class="type-filter" value="ghost"> Ghost</label>
+                    <label><input type="checkbox" class="type-filter" value="steel"> Steel</label>
+                    <label><input type="checkbox" class="type-filter" value="fire"> Fire</label>
+                    <label><input type="checkbox" class="type-filter" value="water"> Water</label>
+                    <label><input type="checkbox" class="type-filter" value="grass"> Grass</label>
+                    <label><input type="checkbox" class="type-filter" value="electric"> Electric</label>
+                    <label><input type="checkbox" class="type-filter" value="psychic"> Psychic</label>
+                    <label><input type="checkbox" class="type-filter" value="ice"> Ice</label>
+                    <label><input type="checkbox" class="type-filter" value="dragon"> Dragon</label>
+                    <label><input type="checkbox" class="type-filter" value="dark"> Dark</label>
+                    <label><input type="checkbox" class="type-filter" value="fairy"> Fairy</label>
+                </div>
+                <div id="second-type-checkboxes" style="display: none;">
+                    <h3>Select Second Type</h3>
+                    <!-- Checkbox list for second typing (hidden initially) -->
+                    <label><input type="checkbox" class="second-type-filter" value="normal"> Normal</label>
+                    <label><input type="checkbox" class="second-type-filter" value="fighting"> Fighting</label>
+                    <label><input type="checkbox" class="second-type-filter" value="flying"> Flying</label>
+                    <label><input type="checkbox" class="second-type-filter" value="poison"> Poison</label>
+                    <label><input type="checkbox" class="second-type-filter" value="ground"> Ground</label>
+                    <label><input type="checkbox" class="second-type-filter" value="rock"> Rock</label>
+                    <label><input type="checkbox" class="second-type-filter" value="bug"> Bug</label>
+                    <label><input type="checkbox" class="second-type-filter" value="ghost"> Ghost</label>
+                    <label><input type="checkbox" class="second-type-filter" value="steel"> Steel</label>
+                    <label><input type="checkbox" class="second-type-filter" value="fire"> Fire</label>
+                    <label><input type="checkbox" class="second-type-filter" value="water"> Water</label>
+                    <label><input type="checkbox" class="second-type-filter" value="grass"> Grass</label>
+                    <label><input type="checkbox" class="second-type-filter" value="electric"> Electric</label>
+                    <label><input type="checkbox" class="second-type-filter" value="psychic"> Psychic</label>
+                    <label><input type="checkbox" class="second-type-filter" value="ice"> Ice</label>
+                    <label><input type="checkbox" class="second-type-filter" value="dragon"> Dragon</label>
+                    <label><input type="checkbox" class="second-type-filter" value="dark"> Dark</label>
+                    <label><input type="checkbox" class="second-type-filter" value="fairy"> Fairy</label>
+                </div>
+            </div>
+
+            <div id="dropdowns-container">
+                <select id="ability-dropdown">
+                    <option value="">Select an Ability</option>
+                </select>
+
+                <select id="generations-dropdown">
+                    <option value="">Select a Generation</option>
+                </select>
+
+                <select id="color-dropdown">
+                    <option value="">Select a Color</option>
+                </select>
+
+                <select id="egg-group-dropdown">
+                    <option value="">Select an Egg Group</option>
+                </select>
+
+                <select id="shape-dropdown">
+                    <option value="">Select a Shape</option>
+                </select>
+
+            </div>
+
+            <div id="legendary-mythical-container">
+                <label><input type="checkbox" id="legendary-filter"> Legendary</label>
+                <label><input type="checkbox" id="mythical-filter"> Mythical</label>
+            </div>
+
+            <div id="filter-actions">
+                <button id="apply-filters">Apply Filters</button>
+                <button id="reset-filters">Reset</button>
+            </div>
+        </section>
+
+        <main id="pokedex-container"></main>
+
+
+        <script type="module" src="./main.js"></script>
+    </body>
+
+</html>
