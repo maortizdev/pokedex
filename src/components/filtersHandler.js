@@ -8,6 +8,7 @@ import { handleRarityFilters, rarityFiltersListeners } from "./filters/rarityFil
 import { handleColorFilter } from "./filters/colorFilter.js";
 import { handleEggGroupFilter } from "./filters/eggGroupFilter.js";
 import { handleShapeFilter } from "./filters/shapeFilter.js";
+import { handleHeightAndWeightFilter, heightAndWeightFilterListeners } from "./filters/heightAndWeightFilter.js";
 
 const applyFilters = document.querySelector('#apply-filters');
 
@@ -22,7 +23,8 @@ const filterFunctions = [
     handleRarityFilters,
     handleColorFilter,
     handleEggGroupFilter,
-    handleShapeFilter
+    handleShapeFilter,
+    handleHeightAndWeightFilter
 ];
 
 // applyAllFilters
@@ -46,6 +48,7 @@ const applyAllFilters = async () => {
 export const handleApplyFiltersListeners = () => {
     typesFiltersListeners();
     rarityFiltersListeners();
+    heightAndWeightFilterListeners();
     applyFilters.addEventListener('click', applyAllFilters);
 };
 

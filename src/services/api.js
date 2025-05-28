@@ -1,6 +1,10 @@
 // Base URL for PokeAPI
 const POKE_API_BASE = 'https://pokeapi.co/api/v2';
-// API endpoints for specific data
+
+/**
+ * API endpoints for fetching specific data from the PokéAPI.
+ * Each function dynamically generates the URL for the given resource.
+ */
 const ENDPOINTS = {
     pokemon: (pokemonIdentifier) => `${POKE_API_BASE}/pokemon/${pokemonIdentifier}`,
     species: (id) => `${POKE_API_BASE}/pokemon-species/${id}`,
@@ -14,7 +18,7 @@ const ENDPOINTS = {
     shapes: (name) => `${POKE_API_BASE}/pokemon-shape/${name}`,
     allShapes: () => `${POKE_API_BASE}/pokemon-shape?limit=20`,
     allColors: () => `${POKE_API_BASE}/pokemon-color?limit=20`,
-    allEggGroups: () => `${POKE_API_BASE}/egg-group?limit=20`
+    allEggGroups: () => `${POKE_API_BASE}/egg-group?limit=20`,
 };
 
 /**
@@ -34,6 +38,8 @@ const fetchData = async (url) => {
         throw error;
     }
 };
+
+// Fetch functions for specific data types
 
 /**
  * Fetch a single Pokémon's data by its ID or Name
@@ -56,10 +62,10 @@ export const fetchSpecies = (id) => {
 };
 
 /**
- * Fetch a single Pokédex's data by its ID
+ * Fetch data for a single Pokédex by ID
  * 
  * @param {number} id - The ID of the Pokédex
- * @returns {Promise<Object>} - The Pokédex's data.
+ * @returns {Promise<Array>} - An array of Pokémon entries with their regional numbers and species.
  */
 export const fetchPokedex = async (id) => {
     try {
@@ -75,7 +81,7 @@ export const fetchPokedex = async (id) => {
 };
 
 /**
- * Fetch a single Type's data by its Name
+ * Fetch data for a sungle Pokémon type by name.
  * 
  * @param {string} name - The Name of the Type
  * @returns {Promise<Object>} - The Type's data.
@@ -85,7 +91,7 @@ export const fetchTypes = (name) => {
 };
 
 /**
- * Fetch a single Ability's data by its Name
+ * Fetch data for a single Ability by name.
  * 
  * @param {string} name - The Name of the Ability
  * @returns {Promise<Object>} - The Ability's data.
@@ -94,6 +100,11 @@ export const fetchAbilities = (name) => {
     return fetchData(ENDPOINTS.abilities(name));
 };
 
+/**
+ * Fetches data for all Pokémon abilities.
+ * 
+ * @returns {Promise<Object>} - Data of all abilities.
+ */
 export const fetchAllAbilities = () => {
     return fetchData(ENDPOINTS.allAbilities());
 };
@@ -109,7 +120,7 @@ export const fetchStats = (name) => {
 };
 
 /**
- * Fetch data of all Abilities
+ * Fetch data of all Stats
  * 
  * @returns {Promise<Object>} - All Abilities' data.
  */
@@ -127,15 +138,33 @@ export const fetchShapes = (name) => {
     return fetchData(ENDPOINTS.shapes(name));
 };
 
+/**
+ * Fetches data for all Pokémon colors.
+ * 
+ * @returns {Promise<Object>} - Data of all Pokémon colors.
+ */
 export const fetchAllColors = () => {
     return fetchData(ENDPOINTS.allColors());
 };
 
+
+/**
+ * Fetches data for all Pokémon egg groups.
+ * 
+ * @returns {Promise<Object>} - Data of all Pokémon egg groups.
+ */
 export const fetchAllEggGroups = () => {
     return fetchData(ENDPOINTS.allEggGroups());
 };
 
+/**
+ * Fetches data for all Pokémon shapes.
+ * 
+ * @returns {Promise<Object>} - Data of all Pokémon shapes.
+ */
 export const fetchAllShapes = () => {
     return fetchData(ENDPOINTS.allShapes());
 };
+
+
 

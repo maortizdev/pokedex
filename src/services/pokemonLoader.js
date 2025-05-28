@@ -61,11 +61,14 @@ export const loadPokemon = async () => {
                     const generation = species ? generationMap[species.generation.name] : null;
                     const isLegendary = species?.is_legendary || false;
                     const isMythical = species?.is_mythical || false;
+                    const isBaby = species?.is_baby || false;
                     const color = species.color.name;
                     const eggGroup = species.egg_groups.map(egg => egg.name);
                     const shape = species.shape.name;
+                    const height = pokemon.height;
+                    const weight = pokemon.weight;
 
-                    const combinedData = { ...pokemon, generation, isLegendary, isMythical, color, eggGroup, shape };
+                    const combinedData = { ...pokemon, generation, isLegendary, isMythical, isBaby, color, eggGroup, shape, height, weight };
 
                     allPokemon.set(combinedData.name, combinedData);
                     allPokemonNames.push(combinedData.name);
