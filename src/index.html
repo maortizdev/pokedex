@@ -4,11 +4,27 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
+        <link rel="stylesheet" href="styles.css">
+        <title>Pokédex</title>
     </head>
 
     <body>
+        <header>
+            <h1>Pokédex</h1>
+        </header>
 
+        <section class="search-container">
+            <input type="text" class="search-input" placeholder="Search for a Pokémon...">
+            <button type="submit" id="search-btn">Search</button>
+        </section>
+
+        <main id="pokemon-display">
+            <!-- Pokemon data will show here -->
+        </main>
+
+        <section id="error-message">
+            <!-- Error messages will show here -->
+        </section>
     </body>
 
 </html>
