@@ -2,6 +2,7 @@
 const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
 // Dynamic endpoint builder for fetching individual Pokemon
 const ENDPOINTS = {
+    pokemonSpecies: (identifier) => `${POKEAPI_BASE_URL}/pokemon-species/${identifier}`,
     pokemon: (identifier) => `${POKEAPI_BASE_URL}/pokemon/${identifier}`,
 };
 
@@ -28,7 +29,108 @@ const NAME_CORRECTIONS = {
     "Wo-Chien": "wo-chien",
     "Chien-Pao": "chien-pao",
     "Ting-Lu": "ting-lu",
-    "Chi-Yu": "chi-yu"
+    "Chi-Yu": "chi-yu",
+
+    // Paradox Pokémon
+    "Great Tusk": "great-tusk",
+    "great tusk": "great-tusk",
+    "greattusk": "great-tusk",
+
+    "Scream Tail": "scream-tail",
+    "scream tail": "scream-tail",
+    "screamtail": "scream-tail",
+
+    "Brute Bonnet": "brute-bonnet",
+    "brute bonnet": "brute-bonnet",
+    "brutebonnet": "brute-bonnet",
+
+    "Flutter Mane": "flutter-mane",
+    "flutter mane": "flutter-mane",
+    "fluttermane": "flutter-mane",
+
+    "Slither Wing": "slither-wing",
+    "slither wing": "slither-wing",
+    "slitherwing": "slither-wing",
+
+    "Sandy Shocks": "sandy-shocks",
+    "sandy shocks": "sandy-shocks",
+    "sandyshocks": "sandy-shocks",
+
+    "Roaring Moon": "roaring-moon",
+    "roaring moon": "roaring-moon",
+    "roaringmoon": "roaring-moon",
+
+    "Iron Hands": "iron-hands",
+    "iron hands": "iron-hands",
+    "ironhands": "iron-hands",
+
+    "Iron Jugulis": "iron-jugulis",
+    "iron jugulis": "iron-jugulis",
+    "iranjugulis": "iron-jugulis",
+
+    "Iron Thorns": "iron-thorns",
+    "iron thorns": "iron-thorns",
+    "ironthorns": "iron-thorns",
+
+    "Iron Bundle": "iron-bundle",
+    "iron bundle": "iron-bundle",
+    "ironbundle": "iron-bundle",
+
+    "Iron Moth": "iron-moth",
+    "iron moth": "iron-moth",
+    "ironmoth": "iron-moth",
+
+    "Iron Treads": "iron-treads",
+    "iron treads": "iron-treads",
+    "irontreads": "iron-treads",
+
+    "Iron Valiant": "iron-valiant",
+    "iron valiant": "iron-valiant",
+    "ironvaliant": "iron-valiant",
+
+    "Walking Wake": "walking-wake",
+    "walking wake": "walking-wake",
+    "walkingwake": "walking-wake",
+
+    "Gouging Fire": "gouging-fire",
+    "gouging fire": "gouging-fire",
+    "gougingfire": "gouging-fire",
+
+    "Raging Bolt": "raging-bolt",
+    "raging bolt": "raging-bolt",
+    "ragingbolt": "raging-bolt",
+
+    "Iron Boulder": "iron-boulder",
+    "iron boulder": "iron-boulder",
+    "ironboulder": "iron-boulder",
+
+    "Iron Crown": "iron-crown",
+    "iron crown": "iron-crown",
+    "ironcrown": "iron-crown",
+
+    "Iron Leaves": "iron-leaves",
+    "Iron leaves": "iron-leaves",
+    "ironleaves": "iron-leaves",
+
+    "Tapu Koko": "tapu-koko",
+    "Tapu koko": "tapu-koko",
+    "tapukoko": "tapu-koko",
+
+    "Tapu Lele": "tapu-lele",
+    "Tapu lele": "tapu-lele",
+    "tapulele": "tapu-lele",
+
+    "Tapu Bulu": "tapu-bulu",
+    "Tapu bulu": "tapu-bulu",
+    "tapubulu": "tapu-bulu",
+
+    "Tapu Fini": "tapu-fini",
+    "Tapu fini": "tapu-fini",
+    "tapufini": "tapu-fini",
+
+    "Porygon2": "porygon2",
+    "Porygon 2": "porygon2",
+    "porygon 2": "porygon2",
 };
 
 // Reverse mapping: converts API names back to display names
@@ -48,6 +150,8 @@ const errorMessage = document.querySelector('#error-message');
 const displayPokemon = (pokemon) => {
     // Get display name (proper format like "Mr. Mime") or fallback to API name
     const displayName = DISPLAY_NAMES[pokemon.name] || pokemon.name;
+
+    errorMessage.textContent = '';
 
     // Update image
     document.querySelector('#pokemon-image').src = pokemon.sprites.other['official-artwork'].front_default;
@@ -70,7 +174,11 @@ const displayPokemon = (pokemon) => {
 
 const displayError = () => {
     errorMessage.textContent = 'Pokemon not found. Please try again.';
-    pokemonDisplay.textContent = '';
+    // Clear the pokemon display info
+    document.querySelector('#pokemon-name').textContent = '';
+    document.querySelector('#pokemon-number').textContent = '';
+    document.querySelector('#pokemon-image').src = '';
+    document.querySelector('#pokemon-types').innerHTML = '';
 };
 
 // ========== DATA PROCESSING ==========
@@ -114,12 +222,36 @@ const fetchData = async (url) => {
     }
 };
 
+// ========== SPECIES LOOKUP (NEW) ==========
+// Fetches from pokemon-species endpoint and gets the default form name
+const getDefaultPokemonForm = async (speciesName) => {
+    try {
+        const speciesData = await fetchData(ENDPOINTS.pokemonSpecies(speciesName));
+
+        // Find the default variety
+        const defaultVariety = speciesData.varieties.find(variety => variety.is_default);
+
+        if (!defaultVariety) {
+            throw new Error('No default variety found');
+        }
+
+        // Extract the pokemon name from the variety URL
+        // URL format: https://pokeapi.co/api/v2/pokemon/shaymin-land/
+        const pokemonName = defaultVariety.pokemon.name;
+
+        console.log(`Species: ${speciesName} → Default form: ${pokemonName}`);
+        return pokemonName;
+    } catch (error) {
+        console.error(`Error fetching species: ${speciesName}`, error);
+        throw error;
+    }
+};
+
 // ========== MAIN SEARCH HANDLER ==========
 const fetchPokemon = async () => {
     const query = normalizePokemonName(searchInput.value);
 
     console.log(`Query result: ${query}`);
-    console.log(`Full URL:${ENDPOINTS.pokemon(query)}`);
 
     // Prevent API call with empty search
     if (!query) {
@@ -128,12 +260,19 @@ const fetchPokemon = async () => {
     }
 
     try {
-        errorMessage.textContent = '';
-        const data = await fetchData(ENDPOINTS.pokemon(query));
+        errorMessage.textContent = ''; // Clear previous errors
+
+        // Step 1: Get the default form from pokemon-species endpoint
+        const defaultForm = await getDefaultPokemonForm(query);
+
+        // Step 2: Fetch the actual pokemon data using the default form name
+        const data = await fetchData(ENDPOINTS.pokemon(defaultForm));
+
         displayPokemon(data);
-        console.log(data)
+        console.log(data);
     } catch (error) {
         displayError();
+        return;
     }
 };
 
