@@ -1,3 +1,8 @@
+/* ============================================
+   Pokédex — styles.css
+   Rearchitecture in progress. See issues #17–#29.
+   Do not add styles here until issue #22.
+   ============================================ */
 :root {
     font-size: 16px;
 }
