@@ -13,23 +13,155 @@ const loadingScreen = document.querySelector('#loading-screen');
 const loadingProgress = document.querySelector('#loading-progress');
 const errorScreen = document.querySelector('#error-screen');
 
-let allPokemon = [];
+// ==============================
+// State
+// ==============================
+
+// NEVER mutate directly 
+const state = {
+    // --- Data ------------------------------
+    allPokemon: [],   // Full list of all Pokemon at startup. NEVER mutated after load
+    // --- Search ------------------------------
+    searchDraft: '',  // Current value of the search input
+    activeSearch: '', // The confirmed search term the pipeline runs against
+    // --- Filters ------------------------------
+    draftFilters: {      // Filters currently selected but not yet applied
+        types: [],       // up to 2 selected types (AND logic)
+        generations: [], // any selected generations (OR logic)
+        statuses: [],    // legendary | myhtical | baby (OR logic)
+    },
+    appliedFilters: {    // The confirmed filters the pipeline runs against
+        types: [],
+        generations: [],
+        statuses: [],
+    },
+    // --- Sort ------------------------------
+    sort: {
+        by: 'id',         // id | name | height | weight
+        direction: 'asc', // asc | desc
+    },
+    // --- Pippeline output ------------------------------
+    visiblePokemon: [],   // The final list of Pokemon that match the active search + filters, sorted and ready to render
+    renderedSubset: [],   // The subset of visiblePokemon currently rendered on screen (for infinite scroll)
+    // --- Modal ------------------------------
+    modal: {
+        isOpen: false,    // Whether the modal is currently open
+        currentIndex: null,
+    }
+};
+
+// ==============================
+// State Setters
+// ==============================
+
+// --- Data ------------------------------
+const setAllPokemon = (pokemonArray) => {
+    state.allPokemon = pokemonArray;
+};
+
+// --- Search ------------------------------
+const setSearchDraft = (value) => {
+    state.searchDraft = value;
+};
+
+const applySearch = () => {
+    state.activeSearch = state.searchDraft;
+};
+
+// --- Filters ------------------------------
+const setDraftTypes = (types) => {
+    state.draftFilters.types = types;
+};
+
+const setDraftGenerations = (generations) => {
+    state.draftFilters.generations = generations;
+};
+
+const setDraftStatuses = (statuses) => {
+    state.draftFilters.statuses = statuses;
+};
+
+const applyFilters = () => {
+    state.appliedFilters = {
+        types: [...state.draftFilters.types],
+        generations: [...state.draftFilters.generations],
+        statuses: [...state.draftFilters.statuses],
+    };
+};
+
+// --- Sort ------------------------------
+const setSort = (by, direction) => {
+    state.sort.by = by;
+    state.sort.direction = direction;
+};
+
+// ---Pipeline output ------------------------------
+const setVisiblePokemon = (pokemonArray) => {
+    state.visiblePokemon = pokemonArray;
+};
+
+const setRenderedSubset = (pokemonArray) => {
+    state.renderedSubset = pokemonArray;
+};
+
+const appendRenderedSubset = (pokemonArray) => {
+    state.renderedSubset = [...state.renderedSubset, ...pokemonArray];
+};
+
+// --- Modal ------------------------------
+const openModal = (indexInVisible) => {
+    state.modal.isOpen = true;
+    state.modal.currentIndex = indexInVisible;
+};
+
+const closeModal = () => {
+    state.modal.isOpen = false;
+    state.modal.currentIndex = null;
+};
+
+const modalNext = () => {
+    if (state.modal.currentIndex === null) return;
+    state.modal.currentIndex =
+        (state.modal.currentIndex + 1) %
+        state.visiblePokemon.length;
+};
+
+const modalPrev = () => {
+    if (state.modal.currentIndex === null) return;
+    state.modal.currentIndex =
+        (state.modal.currentIndex - 1 + state.visiblePokemon.length) %
+        state.visiblePokemon.length;
+};
+
+// --- Reset ------------------------------
+const resetAll = () => {
+    state.searchDraft = '';
+    state.activeSearch = '';
+    state.draftFilters = { types: [], generations: [], statuses: [] };
+    state.appliedFilters = { types: [], generations: [], statuses: [] };
+    state.sort = { by: 'id', direction: 'asc' };
+    state.visiblePokemon = [];
+    state.renderedSubset = [];
+    state.modal = { isOpen: false, currentIndex: null };
+};
+
+// --- Debug ------------------------------
+const logState = () => {
+    console.log('[State]', JSON.parse(JSON.stringify(state)));
+};
 
 // ==============================
 // LOADING / ERROR UI HELPERS
 // ==============================
 
-// Updates the progress text shown on the loading screen
 const updateProgress = (loaded, total) => {
     loadingProgress.textContent = `${loaded} / ${total}`;
 };
 
-// Hides the loading screen
 const hideLoadingScreen = () => {
     loadingScreen.hidden = true;
 };
 
-// Shows the error screen with an optional custom message
 const showError = (message = 'Something went wrong. Please refresh the page.') => {
     hideLoadingScreen();
     errorScreen.hidden = false;
@@ -39,8 +171,9 @@ const showError = (message = 'Something went wrong. Please refresh the page.') =
 const getIdFromUrl = (url) => {
     const parts = url.split('/');
     return parts[parts.length - 2];
-}
+};
 
+// 
 // ==============================
 // Fetch Functions
 // ==============================
@@ -117,6 +250,10 @@ const fetchBatch = async (ids, retrying = false) => {
     }
 };
 
+// ==============================
+// Load All Pokemon
+// =============================
+
 const loadAllPokemon = async () => {
     try {
         updateProgress(0, TOTAL_POKEMON);
@@ -127,19 +264,21 @@ const loadAllPokemon = async () => {
             batches.push(pokemonList.slice(i, i + BATCH_SIZE));
         }
 
+        const buffer = [];
         let loaded = 0;
         for (const batch of batches) {
             const ids = batch.map((pokemon) => getIdFromUrl(pokemon.url));
             const results = await fetchBatch(ids);
-            allPokemon.push(...results);
+            buffer.push(...results);
             loaded += results.length;
             updateProgress(loaded, TOTAL_POKEMON);
         }
 
-        allPokemon.sort((a, b) => a.id - b.id);
-
+        buffer.sort((a, b) => a.id - b.id);
+        setAllPokemon(buffer);
+        setVisiblePokemon([...buffer]);
         hideLoadingScreen();
-        console.log(`allPokemon ready:`, allPokemon);
+        logState();
     } catch (error) {
         showError('Failed to load Pokemon data. Please refresh the page.');
         console.error(error);
