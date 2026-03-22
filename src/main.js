@@ -1,0 +1,149 @@
+const API_BASE = "https://pokeapi.co/api/v2";
+const TOTAL_POKEMON = 1025;
+const BATCH_SIZE = 50;
+const ENDPOINTS = {
+    pokemon: (identifier) => `${API_BASE}/pokemon/${identifier}`,
+};
+
+// ==============================
+// DOM REFERENCES
+// ==============================
+
+const loadingScreen = document.querySelector('#loading-screen');
+const loadingProgress = document.querySelector('#loading-progress');
+const errorScreen = document.querySelector('#error-screen');
+
+let allPokemon = [];
+
+// ==============================
+// LOADING / ERROR UI HELPERS
+// ==============================
+
+// Updates the progress text shown on the loading screen
+const updateProgress = (loaded, total) => {
+    loadingProgress.textContent = `${loaded} / ${total}`;
+};
+
+// Hides the loading screen
+const hideLoadingScreen = () => {
+    loadingScreen.hidden = true;
+};
+
+// Shows the error screen with an optional custom message
+const showError = (message = 'Something went wrong. Please refresh the page.') => {
+    hideLoadingScreen();
+    errorScreen.hidden = false;
+    errorScreen.querySelector('#error-message').textContent = message;
+};
+
+const getIdFromUrl = (url) => {
+    const parts = url.split('/');
+    return parts[parts.length - 2];
+}
+
+// ==============================
+// Fetch Functions
+// ==============================
+
+
+// Fetches the URL, checks if the response was successful, returns the data
+// Why: Single reusable base for all API calls — every other fetch function uses this
+const fetchData = async (url) => {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status} = ${url}`);
+        return response.json();
+    } catch (error) {
+        console.error(`Error fetching data from ${url}:`, error);
+        throw error;
+    }
+};
+
+
+// Fetches the full list of all Pokemon from the API
+// Why: This gives us the name and URL for every Pokemon before we start batch fetching details
+const fetchPokemonList = async () => {
+    const data = await fetchData(`${API_BASE}/pokemon?limit=${TOTAL_POKEMON}`);
+    return data.results;
+};
+
+// Fetches and normalizes a single Pokemon's details
+// Why: We use the API - provided URL directly instead of constructing it ourselves,
+// which is more reliable.We store both the raw API name and the clean species
+// name to handle forms like "giratina-altered" vs "giratina"
+const fetchPokemon = async (id) => {
+    const data = await fetchData(ENDPOINTS.pokemon(id));
+    return {
+        id: data.id,
+        name: data.name,
+        speciesName: data.species.name,
+        types: data.types.map((t) => t.type.name),
+        artwork: data.sprites.other['official-artwork'].front_default,
+        sprite: data.sprites.front_default,
+        height: data.height,
+        weight: data.weight,
+    };
+};
+
+// Fetches a batch of Pokemon in parallel, retries failed ones once
+// Why: Parallel fetching is much faster than one by one. Promise.allSettled is used
+// instead of Promise.all because it never throws — it lets us handle partial
+// failures gracefully instead of the whole batch failing on one bad request
+
+const fetchBatch = async (ids, retrying = false) => {
+    try {
+        const promises = ids.map((id) => fetchPokemon(id));
+        const results = await Promise.allSettled(promises);
+
+        const successful = [];
+        const failed = [];
+
+        results.forEach((result, index) => {
+            if (result.status === "fulfilled") {
+                successful.push(result.value);
+            } else {
+                failed.push(ids[index]);
+            }
+        });
+        if (failed.length > 0 && !retrying) {
+            const retryResults = await fetchBatch(failed, true);
+            return [...successful, ...retryResults];
+        }
+
+        return successful;
+    } catch (error) {
+        if (!retrying) return await fetchBatch(ids, true);
+        return [];
+    }
+};
+
+const loadAllPokemon = async () => {
+    try {
+        updateProgress(0, TOTAL_POKEMON);
+        const pokemonList = await fetchPokemonList();
+
+        const batches = [];
+        for (let i = 0; i < pokemonList.length; i += BATCH_SIZE) {
+            batches.push(pokemonList.slice(i, i + BATCH_SIZE));
+        }
+
+        let loaded = 0;
+        for (const batch of batches) {
+            const ids = batch.map((pokemon) => getIdFromUrl(pokemon.url));
+            const results = await fetchBatch(ids);
+            allPokemon.push(...results);
+            loaded += results.length;
+            updateProgress(loaded, TOTAL_POKEMON);
+        }
+
+        allPokemon.sort((a, b) => a.id - b.id);
+
+        hideLoadingScreen();
+        console.log(`allPokemon ready:`, allPokemon);
+    } catch (error) {
+        showError('Failed to load Pokemon data. Please refresh the page.');
+        console.error(error);
+    }
+};
+
+loadAllPokemon();
