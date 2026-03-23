@@ -20,32 +20,34 @@ const errorScreen = document.querySelector('#error-screen');
 // NEVER mutate directly 
 const state = {
     // --- Data ------------------------------
-    allPokemon: [],   // Full list of all Pokemon at startup. NEVER mutated after load
+    allPokemon: [],         // Full list of all Pokemon at startup. NEVER mutated after load
     // --- Search ------------------------------
-    searchDraft: '',  // Current value of the search input
-    activeSearch: '', // The confirmed search term the pipeline runs against
+    searchDraft: '',        // Current value of the search input
+    activeSearch: '',       // The confirmed search term the pipeline runs against
     // --- Filters ------------------------------
-    draftFilters: {      // Filters currently selected but not yet applied
-        types: [],       // up to 2 selected types (AND logic)
-        generations: [], // any selected generations (OR logic)
-        statuses: [],    // legendary | myhtical | baby (OR logic)
-    },
-    appliedFilters: {    // The confirmed filters the pipeline runs against
+    draftFilters: {         // Filters currently selected but not yet applied
         types: [],
+        typeMode: 'normal', // normal | single | dual 
+        generations: [],    // any selected generations (OR logic)
+        statuses: [],       // legendary | myhtical | baby (OR logic)
+    },
+    appliedFilters: {       // The confirmed filters the pipeline runs against
+        types: [],
+        typeMode: 'normal', // normal | 'single' | 'dual'
         generations: [],
         statuses: [],
     },
     // --- Sort ------------------------------
     sort: {
-        by: 'id',         // id | name | height | weight
-        direction: 'asc', // asc | desc
+        by: 'id',           // id | name | height | weight
+        direction: 'asc',   // asc | desc
     },
     // --- Pippeline output ------------------------------
-    visiblePokemon: [],   // The final list of Pokemon that match the active search + filters, sorted and ready to render
-    renderedSubset: [],   // The subset of visiblePokemon currently rendered on screen (for infinite scroll)
+    visiblePokemon: [],     // The final list of Pokemon that match the active search + filters, sorted and ready to render
+    renderedSubset: [],     // The subset of visiblePokemon currently rendered on screen (for infinite scroll)
     // --- Modal ------------------------------
     modal: {
-        isOpen: false,    // Whether the modal is currently open
+        isOpen: false,      // Whether the modal is currently open
         currentIndex: null,
     }
 };
@@ -73,6 +75,10 @@ const setDraftTypes = (types) => {
     state.draftFilters.types = types;
 };
 
+const setDraftTypeMode = (mode) => {
+    state.draftFilters.typeMode = mode;
+};
+
 const setDraftGenerations = (generations) => {
     state.draftFilters.generations = generations;
 };
@@ -84,6 +90,7 @@ const setDraftStatuses = (statuses) => {
 const applyFilters = () => {
     state.appliedFilters = {
         types: [...state.draftFilters.types],
+        typeMode: state.draftFilters.typeMode,
         generations: [...state.draftFilters.generations],
         statuses: [...state.draftFilters.statuses],
     };
@@ -151,6 +158,87 @@ const logState = () => {
 };
 
 // ==============================
+//  Pipeline
+// ==============================
+
+// Filters allPokemon by activeSearch (greedy substring, case-insensitive)
+// Empty search passes everything through
+const searchPokemon = (pokemon) => {
+    const term = state.activeSearch.trim().toLowerCase();
+    if (!term) return pokemon;
+    return pokemon.filter((p) =>
+        p.name.toLowerCase().includes(term) ||
+        p.speciesName.toLowerCase().includes(term));
+};
+
+// Filter by appliedFilters
+// Each filter group is optional
+// Between groups: AND
+// Within types: AND
+// Within generations/statuses: OR
+const filterPokemon = (pokemon) => {
+    const { types, typeMode, generations, statuses } = state.appliedFilters;
+
+    return pokemon.filter((p) => {
+
+        // Type filter: depends on selected mode
+        let passesTypes = true;
+        if (types.length > 0) {
+            if (typeMode === 'normal') {
+                passesTypes = types.some((t) => p.types.includes(t));
+
+            } else if (typeMode === 'single') {
+                passesTypes = p.types.length === 1 && types.includes(p.types[0]);
+
+            } else if (typeMode === 'dual') {
+                passesTypes =
+                    types.length === 2 &&
+                    p.types.length === 2 &&
+                    types.every((t) => p.types.includes(t));
+            };
+        };
+
+        // Generation filter: pokemon must match ANY selected generation (OR logic)
+        const passesGenerations =
+            generations.length === 0 ||
+            generations.includes(p.generation);
+
+        // Status filter: pokemon must match ANY selected status (OR logic)
+        const passesStatuses =
+            statuses.length === 0 ||
+            (statuses.includes('legendary') && p.isLegendary) ||
+            (statuses.includes('mythical') && p.isMythical) ||
+            (statuses.includes('baby') && p.isBaby);
+
+        return passesTypes && passesGenerations && passesStatuses;
+    });
+};
+
+// Sorts the pokemon array by state.sort.by and stat.sort.direction
+// Spread into a new array first because sort() mutates
+const sortPokemon = (pokemon) => {
+    const { by, direction } = state.sort;
+    const multiplier = direction === 'asc' ? 1 : -1;
+
+    return [...pokemon].sort((a, b) => {
+        if (by === 'name') {
+            return multiplier * a.name.localeCompare(b.name);
+        }
+        return multiplier * (a[by] - b[by]); // id | height | weight
+    });
+};
+
+// Master pipeline function - chains search -> filter -> sort
+// then updates state.visiblePokemon with the result.
+const runPipeline = () => {
+    const searched = searchPokemon(state.allPokemon);
+    const filtered = filterPokemon(searched);
+    const sorted = sortPokemon(filtered);
+    setVisiblePokemon(sorted);
+    console.log(`[Pipeline] visiblePokemon: ${sorted.length} / ${state.allPokemon.length}`);
+};
+
+// ==============================
 // LOADING / ERROR UI HELPERS
 // ==============================
 
@@ -178,7 +266,6 @@ const getIdFromUrl = (url) => {
 // Fetch Functions
 // ==============================
 
-
 // Fetches the URL, checks if the response was successful, returns the data
 // Why: Single reusable base for all API calls — every other fetch function uses this
 const fetchData = async (url) => {
@@ -191,7 +278,6 @@ const fetchData = async (url) => {
         throw error;
     }
 };
-
 
 // Fetches the full list of all Pokemon from the API
 // Why: This gives us the name and URL for every Pokemon before we start batch fetching details
@@ -276,7 +362,7 @@ const loadAllPokemon = async () => {
 
         buffer.sort((a, b) => a.id - b.id);
         setAllPokemon(buffer);
-        setVisiblePokemon([...buffer]);
+        runPipeline();
         hideLoadingScreen();
         logState();
     } catch (error) {
