@@ -12,6 +12,7 @@ const ENDPOINTS = {
 const loadingScreen = document.querySelector('#loading-screen');
 const loadingProgress = document.querySelector('#loading-progress');
 const errorScreen = document.querySelector('#error-screen');
+const appShell = document.querySelector('#app');
 
 // ==============================
 // State
@@ -144,8 +145,8 @@ const modalPrev = () => {
 const resetAll = () => {
     state.searchDraft = '';
     state.activeSearch = '';
-    state.draftFilters = { types: [], generations: [], statuses: [] };
-    state.appliedFilters = { types: [], generations: [], statuses: [] };
+    state.draftFilters = { types: [], typeMode: 'normal', generations: [], statuses: [] };
+    state.appliedFilters = { types: [], typeMode: 'normal', generations: [], statuses: [] };
     state.sort = { by: 'id', direction: 'asc' };
     state.visiblePokemon = [];
     state.renderedSubset = [];
