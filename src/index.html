@@ -9,14 +9,164 @@
     </head>
 
     <body>
+        <!-- ==============================
+                    LOADING SCREEN
+        =================================== -->
         <div id="loading-screen">
             <p id="loading-text">Loading Pokémon...
                 <span id="loading-progress">0 / 0</span>
             </p>
         </div>
 
+        <!-- ==============================
+                    ERROR SCREEN
+        =================================== -->
         <div id="error-screen" hidden>
             <p id="error-message">Something went wrong. Please refresh the page.</p>
+        </div>
+
+        <!-- ==============================
+        APP SHELL (hidden until load complete)
+        =================================== -->
+        <div id="app" hidden>
+
+            <!-- TOPBAR -->
+            <header id="topbar">
+                <h1 id="app-title">Pokédex</h1>
+
+                <!-- Search -->
+                <input id="search-input" type="search" placeholder="Search Pokemon..." aria-label="Search Pokemon">
+
+                <!-- Sort -->
+                <div id="sort-controls">
+                    <select id="sort-by" aria-label="Sort by">
+                        <option value="id">Number</option>
+                        <option value="name">Name</option>
+                        <option value="height">Height</option>
+                        <option value="weight">Weight</option>
+                    </select>
+                    <button id="sort-direction" aria-label="Sort direction: ascending">↑</button>
+                </div>
+
+                <!-- Random -->
+                <button id="random-btn" aria-label="Open a random Pokemon">Random</button>
+
+                <!-- Grid / List toggle -->
+                <div id="view-toggle" role="group" aria-label="View mode">
+                    <button id="grid-view-btn" aria-pressed="true" aria-label="Grid view">Grid</button>
+                    <button id="list-view-btn" aria-pressed="false" aria-label="List view">List</button>
+                </div>
+            </header>
+
+            <!-- MAIN LAYOUT -->
+            <div id="layout">
+
+                <!-- SIDEBAR -->
+                <aside id="sidebar">
+
+                    <!-- Type filter -->
+                    <section id="filter-type" aria-labelledby="filter-type-heading">
+                        <h2 id="filter-type-heading">Type</h2>
+
+                        <!-- Type mode selector -->
+                        <div id="type-mode" role="group" aria-label="Type filter mode">
+                            <label>
+                                <input type="radio" name="type-mode" value="normal" checked>
+                                Normal
+                            </label>
+                            <label>
+                                <input type="radio" name="type-mode" value="single">
+                                Single type only
+                            </label>
+                            <label>
+                                <input type="radio" name="type-mode" value="dual">
+                                Dual type only
+                            </label>
+                        </div>
+
+                        <!-- Type buttons - rendered by JS -->
+                        <div id="type-options" role="group" aria-label="Select types"></div>
+                    </section>
+
+                    <!-- Generation filter -->
+                    <section id="filter-generation" aria-labelledby="filter-generation-heading">
+                        <h2 id="filter-generation-heading">Generation</h2>
+                        <div id="generation-options" role="group" aria-label="Select generations"></div>
+                    </section>
+
+                    <!-- Status filter -->
+                    <section id="filter-status" aria-labelledby="filter-status-heading">
+                        <h2 id="filter-status-heading">Status</h2>
+                        <div id="status-options" role="group" aria-label="Select status">
+                            <label>
+                                <input type="checkbox" name="status" value="legendary">
+                                Legendary
+                            </label>
+                            <label>
+                                <input type="checkbox" name="status" value="mythical">
+                                Mythical
+                            </label>
+                            <label>
+                                <input type="checkbox" name="status" value="baby">
+                                Baby
+                            </label>
+                        </div>
+                    </section>
+
+                    <!-- Sidebar actions -->
+                    <div id="sidebar-actions">
+                        <button id="apply-filters-btn">Apply Filters</button>
+                        <button id="clear-everything-btn">Clear Everything</button>
+                    </div>
+                </aside>
+
+                <!-- MAIN CONTENT -->
+                <main id="content">
+                    <!-- Filter chips - rendered by JS -->
+                    <div id="filter-chips" role="list" aria-label="Active filters"></div>
+
+                    <!-- Result count - rendered by JS -->
+                    <p id="result-count" aria-live="polite"></p>
+
+                    <!-- Pokemon grid / list - rendered by JS -->
+                    <div id="pokemon-grid" role="list" aria-label="Pokemon list"></div>
+
+                    <!-- Infinite scroll sentinel -->
+                    <div id="scroll-sentinel" aria-hidden="true"></div>
+                </main>
+            </div>
+
+            <!-- ==============================
+                            MODAL 
+            =================================== -->
+
+            <div id="modal" role="dialog" aria-modal="true" aria-label="Pokemon details" hidden>
+                <div id="modal-backdrop">
+                    <div id="modal-content">
+                        <button id="modal-close" aria-label="Close modal">x</button>
+
+                        <div id="modal-body">
+                            <img id="modal-artwork" src="" alt="">
+                            <div id="modal-info">
+                                <p id="modal-number"></p>
+                                <h2 id="modal-name"></h2>
+                                <div id="modal-types"></div>
+                                <p id="modal-height"></p>
+                                <p id="modal-weight"></p>
+                                <p id="modal-generation"></p>
+                                <p id="modal-status"></p>
+                            </div>
+                        </div>
+
+                        <div id="modal-nav">
+                            <button id="modal-prev" aria-label="Previous Pokémon">◀</button>
+                            <button id="modal-next" aria-label="Next Pokémon">▶</button>
+                        </div>
+
+                        <div id="modal-loading" aria-label="Loading details" hidden></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script src="main.js"></script>
