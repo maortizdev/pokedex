@@ -30,13 +30,13 @@ const state = {
         types: [],
         typeMode: 'normal', // normal | single | dual 
         generations: [],    // any selected generations (OR logic)
-        statuses: [],       // legendary | myhtical | baby (OR logic)
+        special: [],       // legendary | myhtical | baby (OR logic)
     },
     appliedFilters: {       // The confirmed filters the pipeline runs against
         types: [],
         typeMode: 'normal', // normal | 'single' | 'dual'
         generations: [],
-        statuses: [],
+        special: [],
     },
     // --- Sort ------------------------------
     sort: {
@@ -84,8 +84,8 @@ const setDraftGenerations = (generations) => {
     state.draftFilters.generations = generations;
 };
 
-const setDraftStatuses = (statuses) => {
-    state.draftFilters.statuses = statuses;
+const setDraftSpecial = (special) => {
+    state.draftFilters.special = special;
 };
 
 const applyFilters = () => {
@@ -93,7 +93,7 @@ const applyFilters = () => {
         types: [...state.draftFilters.types],
         typeMode: state.draftFilters.typeMode,
         generations: [...state.draftFilters.generations],
-        statuses: [...state.draftFilters.statuses],
+        special: [...state.draftFilters.special],
     };
 };
 
@@ -145,8 +145,8 @@ const modalPrev = () => {
 const resetAll = () => {
     state.searchDraft = '';
     state.activeSearch = '';
-    state.draftFilters = { types: [], typeMode: 'normal', generations: [], statuses: [] };
-    state.appliedFilters = { types: [], typeMode: 'normal', generations: [], statuses: [] };
+    state.draftFilters = { types: [], typeMode: 'normal', generations: [], special: [] };
+    state.appliedFilters = { types: [], typeMode: 'normal', generations: [], special: [] };
     state.sort = { by: 'id', direction: 'asc' };
     state.visiblePokemon = [];
     state.renderedSubset = [];
@@ -176,9 +176,9 @@ const searchPokemon = (pokemon) => {
 // Each filter group is optional
 // Between groups: AND
 // Within types: AND
-// Within generations/statuses: OR
+// Within generations/special: OR
 const filterPokemon = (pokemon) => {
-    const { types, typeMode, generations, statuses } = state.appliedFilters;
+    const { types, typeMode, generations, special } = state.appliedFilters;
 
     return pokemon.filter((p) => {
 
@@ -204,14 +204,14 @@ const filterPokemon = (pokemon) => {
             generations.length === 0 ||
             generations.includes(p.generation);
 
-        // Status filter: pokemon must match ANY selected status (OR logic)
-        const passesStatuses =
-            statuses.length === 0 ||
-            (statuses.includes('legendary') && p.isLegendary) ||
-            (statuses.includes('mythical') && p.isMythical) ||
-            (statuses.includes('baby') && p.isBaby);
+        // Special filter: pokemon must match ANY selected special (OR logic)
+        const passesSpecial =
+            special.length === 0 ||
+            (special.includes('legendary') && p.isLegendary) ||
+            (special.includes('mythical') && p.isMythical) ||
+            (special.includes('baby') && p.isBaby);
 
-        return passesTypes && passesGenerations && passesStatuses;
+        return passesTypes && passesGenerations && passesSpecial;
     });
 };
 
@@ -249,6 +249,7 @@ const updateProgress = (loaded, total) => {
 
 const hideLoadingScreen = () => {
     loadingScreen.hidden = true;
+    appShell.hidden = false;
 };
 
 const showError = (message = 'Something went wrong. Please refresh the page.') => {

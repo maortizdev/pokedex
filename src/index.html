@@ -71,8 +71,8 @@
                         <!-- Type mode selector -->
                         <div id="type-mode" role="group" aria-label="Type filter mode">
                             <label>
-                                <input type="radio" name="type-mode" value="normal" checked>
-                                Normal
+                                <input type="radio" name="type-mode" value="any" checked>
+                                Any type
                             </label>
                             <label>
                                 <input type="radio" name="type-mode" value="single">
@@ -94,20 +94,20 @@
                         <div id="generation-options" role="group" aria-label="Select generations"></div>
                     </section>
 
-                    <!-- Status filter -->
-                    <section id="filter-status" aria-labelledby="filter-status-heading">
-                        <h2 id="filter-status-heading">Status</h2>
-                        <div id="status-options" role="group" aria-label="Select status">
+                    <!-- Special pokemon filter -->
+                    <section id="filter-special" aria-labelledby="filter-special-heading">
+                        <h2 id="filter-special-heading">Special Pokemon</h2>
+                        <div id="special-options" role="group" aria-label="Select special">
                             <label>
-                                <input type="checkbox" name="status" value="legendary">
+                                <input type="checkbox" name="special" value="legendary">
                                 Legendary
                             </label>
                             <label>
-                                <input type="checkbox" name="status" value="mythical">
+                                <input type="checkbox" name="special" value="mythical">
                                 Mythical
                             </label>
                             <label>
-                                <input type="checkbox" name="status" value="baby">
+                                <input type="checkbox" name="special" value="baby">
                                 Baby
                             </label>
                         </div>
@@ -129,7 +129,59 @@
                     <p id="result-count" aria-live="polite"></p>
 
                     <!-- Pokemon grid / list - rendered by JS -->
-                    <div id="pokemon-grid" role="list" aria-label="Pokemon list"></div>
+                    <div id="pokemon-grid" role="list" aria-label="Pokemon list">
+                        <!-- Card stand-in for visualization -->
+                        <!-- DELETE WHEN POPULATING CARDS IN JS -->
+                        <article class="poke-card" role="listitem" tabindex="0">
+                            <div class="poke-card__top">
+                                <h3 class="poke-card__name">Bulbasaur</h3>
+                                <span class="poke-card__number">#001</span>
+                            </div>
+
+                            <div class="poke-card__body">
+                                <img class="poke-card__sprite" alt="Bulbasaur sprite"
+                                    src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" />
+
+                                <div class="poke-card__types">
+                                    <span class="type-badge" data-type="grass">Grass</span>
+                                    <span class="type-badge" data-type="poison">Poison</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="poke-card" role="listitem" tabindex="0">
+                            <div class="poke-card__top">
+                                <h3 class="poke-card__name">Charmander</h3>
+                                <span class="poke-card__number">#004</span>
+                            </div>
+
+                            <div class="poke-card__body">
+                                <img class="poke-card__sprite" alt="Charmander sprite"
+                                    src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" />
+
+                                <div class="poke-card__types">
+                                    <span class="type-badge" data-type="fire">Fire</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="poke-card" role="listitem" tabindex="0">
+                            <div class="poke-card__top">
+                                <h3 class="poke-card__name">Pikachu</h3>
+                                <span class="poke-card__number">#025</span>
+                            </div>
+
+                            <div class="poke-card__body">
+                                <img class="poke-card__sprite" alt="Pikachu sprite"
+                                    src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" />
+
+                                <div class="poke-card__types">
+                                    <span class="type-badge" data-type="electric">Electric</span>
+                                </div>
+                            </div>
+                        </article>
+                        <!-- stand-in ends here -->
+                    </div>
 
                     <!-- Infinite scroll sentinel -->
                     <div id="scroll-sentinel" aria-hidden="true"></div>
@@ -154,7 +206,7 @@
                                 <p id="modal-height"></p>
                                 <p id="modal-weight"></p>
                                 <p id="modal-generation"></p>
-                                <p id="modal-status"></p>
+                                <p id="modal-special"></p>
                             </div>
                         </div>
 
