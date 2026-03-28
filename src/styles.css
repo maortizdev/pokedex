@@ -513,6 +513,7 @@ input[type="radio"] {
 
 .poke-card__types {
     display: flex;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 8px;
 }
@@ -595,7 +596,7 @@ input[type="radio"] {
 
 /* Fixed width only where alignment matters (cards) */
 .poke-card__types .type-badge {
-    width: 92px;
+    width: 75px;
     padding: 0;
     /* since width is fixed */
     font-weight: 800;
@@ -874,4 +875,14 @@ button:active,
     .poke-card:hover {
         transform: none;
     }
+}
+
+/* ---------- EMPTY STATE ---------- */
+.epmty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 16px;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 1rem;
 }

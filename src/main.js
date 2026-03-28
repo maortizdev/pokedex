@@ -13,6 +13,9 @@ const loadingScreen = document.querySelector('#loading-screen');
 const loadingProgress = document.querySelector('#loading-progress');
 const errorScreen = document.querySelector('#error-screen');
 const appShell = document.querySelector('#app');
+const pokemonGrid = document.querySelector('#pokemon-grid');
+const scrollSentinel = document.querySelector('#scroll-sentinel');
+const resultCount = document.querySelector('#result-count');
 
 // ==============================
 // State
@@ -237,6 +240,7 @@ const runPipeline = () => {
     const sorted = sortPokemon(filtered);
     setVisiblePokemon(sorted);
     console.log(`[Pipeline] visiblePokemon: ${sorted.length} / ${state.allPokemon.length}`);
+    resetRender();
 };
 
 // ==============================
@@ -263,7 +267,6 @@ const getIdFromUrl = (url) => {
     return parts[parts.length - 2];
 };
 
-// 
 // ==============================
 // Fetch Functions
 // ==============================
@@ -339,6 +342,121 @@ const fetchBatch = async (ids, retrying = false) => {
 };
 
 // ==============================
+// RENDERING
+// ==============================
+
+// Builds and returns a single .poke-card <article> element for a given pokemon object.
+// Why: Keeping creation separate from insertion means renderBatch() can build
+// all cards first and append them in one shot
+const renderCard = (pokemon) => {
+    const card = document.createElement('article');
+    card.className = 'poke-card';
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('tabindex', '0');
+    card.dataset.id = pokemon.id;
+
+    // 1 -> #001, 25 -> #025, 150 -> #150
+    const paddedId = String(pokemon.id).padStart(3, '0');
+
+    const typeBadgesHTML = pokemon.types
+        .map((t) => `<span class='type-badge' data-type='${t}'>${t}</span>`)
+        .join('');
+
+    card.innerHTML = `
+    <div class='poke-card__top'>
+        <h3 class='poke-card__name'>${pokemon.speciesName}</h3>
+        <span class='poke-card__number'>#${paddedId}</span>
+    </div>
+    <div class='poke-card__body'>
+        <img
+            class='poke-card__artwork'
+            src='${pokemon.artwork}'
+            alt='${pokemon.speciesName} artwork'
+            loading='lazy'
+        />
+        <div class='poke-card__types'>${typeBadgesHTML}</div>
+    </div>
+    `;
+
+    return card;
+};
+
+// ---------- Empty State ----------
+
+// Shows a friendly message inside the grid when no pokemon match
+const showEmptyState = () => {
+    if (pokemonGrid.querySelector('.empty-state')) return;
+    const msg = document.createElement('div');
+    msg.className = 'empty-state';
+    msg.textContent = 'No Pokemon match your search or filters.';
+    pokemonGrid.appendChild(msg);
+};
+
+const hideEmptyState = () => {
+    const msg = pokemonGrid.querySelector('.empty-state');
+    if (msg) msg.remove();
+};
+
+// ---------- BATCH RENDERING ----------
+
+// Renders the next BATCH_SIZE cards from visiblePokemon into the grid.
+// Uses a DocumentFragment to batch all DOM insertions into a single reflow.
+const renderBatch = () => {
+    const start = state.renderedSubset.length;
+    const end = Math.min(start + BATCH_SIZE, state.visiblePokemon.length);
+
+    if (start >= state.visiblePokemon.length) return;
+
+    const fragment = document.createDocumentFragment();
+    const newBatch = state.visiblePokemon.slice(start, end);;
+
+    newBatch.forEach((pokemon) => {
+        fragment.appendChild(renderCard(pokemon));
+    });
+
+    pokemonGrid.appendChild(fragment);
+    appendRenderedSubset(newBatch);
+};
+
+// ---------- Reset render ----------
+
+// Called whenever the pipeline runs
+const resetRender = () => {
+    // Full reset of the grid. Called whenever the pipeline runs
+    pokemonGrid.innerHTML = '';
+    setRenderedSubset([]);
+
+    const total = state.visiblePokemon.length;
+    resultCount.textContent = total === 1 ? '1 Pokemon found' : `${total} Pokemon found`;
+
+    if (total === 0) {
+        showEmptyState();
+        return;
+    }
+
+    hideEmptyState();
+    renderBatch();
+};
+
+// ---------- Infinite Scroll ----------
+
+// IntersectionObserver watches the #scroll-sentinel div at the bottom of #content.
+// When it becomes visible in the viewport, we load the next batch.
+const scrollObserver = new IntersectionObserver(
+    (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && state.renderedSubset.length < state.visiblePokemon.length) {
+            renderBatch();
+        }
+    },
+    {
+        rootMargin: '200px',
+    }
+);
+
+scrollObserver.observe(scrollSentinel);
+
+// ==============================
 // Load All Pokemon
 // =============================
 
@@ -374,3 +492,12 @@ const loadAllPokemon = async () => {
 };
 
 loadAllPokemon();
+
+// ==============================
+// Event Listeners
+// ==============================
+
+document.querySelector('#clear-everything-btn').addEventListener('click', () => {
+    resetAll();
+    runPipeline();
+});
