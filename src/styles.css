@@ -490,7 +490,6 @@ input[type="radio"] {
 .poke-card__name {
     margin: 0;
     font-weight: 900;
-    text-transform: capitalize;
     line-height: 1.1;
     overflow: hidden;
     text-overflow: ellipsis;
