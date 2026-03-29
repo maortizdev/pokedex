@@ -1,8 +1,82 @@
+// ==============================
+//  Constants
+// ==============================
+
 const API_BASE = "https://pokeapi.co/api/v2";
 const TOTAL_POKEMON = 1025;
 const BATCH_SIZE = 50;
 const ENDPOINTS = {
     pokemon: (identifier) => `${API_BASE}/pokemon/${identifier}`,
+};
+const DISPLAY_NAME_MAP = {
+    // Special punctuation/symbols
+    'mr-mime': 'Mr. Mime',
+    'mr-rime': 'Mr. Rime',
+    'mime-jr': 'Mime Jr.',
+    'type-null': 'Type: Null',
+    'farfetchd': "Farfetch'd",
+    'sirfetchd': "Sirfetch'd",
+    'nidoran-f': 'Nidoran♀',
+    'nidoran-m': 'Nidoran♂',
+    'flabebe': 'Flabébé',
+    'ho-oh': 'Ho-Oh',
+    'porygon-z': 'Porygon-Z',
+    'jangmo-o': 'Jangmo-o',
+    'hakamo-o': 'Hakamo-o',
+    'kommo-o': 'Kommo-o',
+
+    // Tapu
+    'tapu-koko': 'Tapu Koko',
+    'tapu-lele': 'Tapu Lele',
+    'tapu-bulu': 'Tapu Bulu',
+    'tapu-fini': 'Tapu Fini',
+
+    // Paradox — Past
+    'great-tusk': 'Great Tusk',
+    'scream-tail': 'Scream Tail',
+    'brute-bonnet': 'Brute Bonnet',
+    'flutter-mane': 'Flutter Mane',
+    'slither-wing': 'Slither Wing',
+    'sandy-shocks': 'Sandy Shocks',
+    'roaring-moon': 'Roaring Moon',
+    'walking-wake': 'Walking Wake',
+    'gouging-fire': 'Gouging Fire',
+    'raging-bolt': 'Raging Bolt',
+
+    // Paradox — Future
+    'iron-treads': 'Iron Treads',
+    'iron-bundle': 'Iron Bundle',
+    'iron-hands': 'Iron Hands',
+    'iron-jugulis': 'Iron Jugulis',
+    'iron-moth': 'Iron Moth',
+    'iron-thorns': 'Iron Thorns',
+    'iron-valiant': 'Iron Valiant',
+    'iron-leaves': 'Iron Leaves',
+    'iron-boulder': 'Iron Boulder',
+    'iron-crown': 'Iron Crown',
+};
+const SEARCH_KEY_MAP = {
+    '♀': 'f',
+    '♂': 'm',
+};
+
+const toSearchKey = (str) => {
+    return str
+        .toLowerCase()
+        .replace(/[♀♂]/g, (char) => SEARCH_KEY_MAP[char])
+        .replace(/\bfemale\b/g, 'f')
+        .replace(/\bmale\b/g, 'm')
+        .normalize('NFD')                    // decompose accented chars (é → e + ́)
+        .replace(/[\u0300-\u036f]/g, '')     // strip the accent marks
+        .replace(/[^a-z0-9]/g, '');          // strip everything that isn't a letter or number
+};
+
+const toDisplayName = (speciesName) => {
+    if (DISPLAY_NAME_MAP[speciesName]) return DISPLAY_NAME_MAP[speciesName];
+    return speciesName
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 };
 
 // ==============================
@@ -12,6 +86,14 @@ const ENDPOINTS = {
 const loadingScreen = document.querySelector('#loading-screen');
 const loadingProgress = document.querySelector('#loading-progress');
 const errorScreen = document.querySelector('#error-screen');
+const clearEverythingBtn = document.querySelector('#clear-everything-btn');
+const searchInput = document.querySelector('#search-input');
+const sortBy = document.querySelector('#sort-by');
+const sortDirection = document.querySelector('#sort-direction');
+const randomBtn = document.querySelector('#random-btn');
+const gridViewBtn = document.querySelector('#grid-view-btn');
+const listViewBtn = document.querySelector('#list-view-btn');
+const viewToggle = document.querySelector('#view-toggle');
 const appShell = document.querySelector('#app');
 const pokemonGrid = document.querySelector('#pokemon-grid');
 const scrollSentinel = document.querySelector('#scroll-sentinel');
@@ -53,7 +135,9 @@ const state = {
     modal: {
         isOpen: false,      // Whether the modal is currently open
         currentIndex: null,
-    }
+    },
+    // --- View ------------------------------
+    view: 'grid',
 };
 
 // ==============================
@@ -161,6 +245,13 @@ const logState = () => {
     console.log('[State]', JSON.parse(JSON.stringify(state)));
 };
 
+const updateViewButtons = () => {
+    gridViewBtn.setAttribute('aria-pressed', state.view === 'grid' ? 'true' : 'false');
+    listViewBtn.setAttribute('aria-pressed', state.view === 'list' ? 'true' : 'false');
+    gridViewBtn.classList.toggle('active', state.view === 'grid');
+    listViewBtn.classList.toggle('active', state.view === 'list');
+};
+
 // ==============================
 //  Pipeline
 // ==============================
@@ -168,11 +259,25 @@ const logState = () => {
 // Filters allPokemon by activeSearch (greedy substring, case-insensitive)
 // Empty search passes everything through
 const searchPokemon = (pokemon) => {
-    const term = state.activeSearch.trim().toLowerCase();
-    if (!term) return pokemon;
-    return pokemon.filter((p) =>
-        p.name.toLowerCase().includes(term) ||
-        p.speciesName.toLowerCase().includes(term));
+    // const term = toSearchKey(state.activeSearch);
+    // if (term.length < 2) return pokemon;
+    // return pokemon.filter((p) =>
+    //     p.searchKey.includes(term) ||
+    //     toSearchKey(p.name).includes(term)
+    const term = toSearchKey(state.activeSearch);
+    if (term.length < 2) return pokemon;
+
+    return pokemon.filter((p) => {
+        if (p.searchKey.startsWith(term)) return true;
+
+        const parts = p.speciesName.split('-');
+        if (parts.some((part) => part.startsWith(term))) return true;
+
+        const nameParts = p.name.split('-');
+        if (nameParts.some((part) => part.startsWith(term))) return true;
+
+        return false;
+    });
 };
 
 // Filter by appliedFilters
@@ -301,6 +406,8 @@ const fetchPokemon = async (id) => {
         id: data.id,
         name: data.name,
         speciesName: data.species.name,
+        searchKey: toSearchKey(data.species.name),
+        displayName: toDisplayName(data.species.name),
         types: data.types.map((t) => t.type.name),
         artwork: data.sprites.other['official-artwork'].front_default,
         sprite: data.sprites.front_default,
@@ -364,7 +471,7 @@ const renderCard = (pokemon) => {
 
     card.innerHTML = `
     <div class='poke-card__top'>
-        <h3 class='poke-card__name'>${pokemon.speciesName}</h3>
+        <h3 class='poke-card__name'>${pokemon.displayName}</h3>
         <span class='poke-card__number'>#${paddedId}</span>
     </div>
     <div class='poke-card__body'>
@@ -422,6 +529,12 @@ const renderBatch = () => {
 
 // Called whenever the pipeline runs
 const resetRender = () => {
+
+    if (state.view === 'list') {
+        pokemonGrid.classList.add('is-list');
+    } else {
+        pokemonGrid.classList.remove('is-list');
+    }
     // Full reset of the grid. Called whenever the pipeline runs
     pokemonGrid.innerHTML = '';
     setRenderedSubset([]);
@@ -497,7 +610,69 @@ loadAllPokemon();
 // Event Listeners
 // ==============================
 
-document.querySelector('#clear-everything-btn').addEventListener('click', () => {
+clearEverythingBtn.addEventListener('click', () => {
     resetAll();
+
+    // Sync topbar UI back to default state
+    searchInput.value = '';
+    sortBy.value = 'id';
+    const sortBtn = sortDirection;
+    sortBtn.textContent = '↑';
+    sortBtn.setAttribute('aria-label', 'Sort direction: ascending');
+
     runPipeline();
 });
+
+searchInput.addEventListener('input', (e) => {
+    setSearchDraft(e.target.value);
+});
+
+searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        applySearch();
+        runPipeline();
+    }
+});
+
+sortBy.addEventListener('change', (e) => {
+    setSort(e.target.value, state.sort.direction);
+    runPipeline();
+});
+
+sortDirection.addEventListener('click', () => {
+    const newDirection = state.sort.direction === 'asc' ? 'desc' : 'asc';
+    setSort(state.sort.by, newDirection);
+    console.log(state.sort)
+
+    const btn = sortDirection;
+    btn.textContent = newDirection === 'asc' ? '↑' : '↓';
+    btn.setAttribute('aria-label', `Sort direction: ${newDirection === 'asc' ? 'ascending' : 'descending'}`);
+
+    runPipeline();
+});
+
+randomBtn.addEventListener('click', () => {
+    if (!state.visiblePokemon.length) return;
+
+    const randomIndex = Math.floor(Math.random() * state.visiblePokemon.length);
+
+    openModal(randomIndex);
+});
+
+gridViewBtn.addEventListener('click', () => {
+    if (state.view !== 'grid') {
+        state.view = 'grid';
+        runPipeline();
+        updateViewButtons();
+    }
+
+});
+listViewBtn.addEventListener('click', () => {
+    if (state.view !== 'list') {
+        state.view = 'list';
+        runPipeline();
+        updateViewButtons();
+    }
+});
+
+
