@@ -106,6 +106,20 @@ const applyFiltersBtn = document.querySelector('#apply-filters-btn');
 const filterChips = document.querySelector('#filter-chips');
 const specialOptions = document.querySelector('#special-options');
 const typeMode = document.querySelector('#type-mode');
+// Modal references
+const modal = document.querySelector('#modal');
+const modalArtwork = document.querySelector('#modal-artwork');
+const modalName = document.querySelector('#modal-name');
+const modalNumber = document.querySelector('#modal-number');
+const modalTypes = document.querySelector('#modal-types');
+const modalHeight = document.querySelector('#modal-height');
+const modalWeight = document.querySelector('#modal-weight');
+const modalGeneration = document.querySelector('#modal-generation');
+const modalSpecial = document.querySelector('#modal-special');
+const modalClose = document.querySelector('#modal-close');
+const modalPrevBtn = document.querySelector('#modal-prev');
+const modalNextBtn = document.querySelector('#modal-next');
+const modalLoading = document.querySelector('#modal-loading');
 
 // ==============================
 // State
@@ -583,6 +597,79 @@ const scrollObserver = new IntersectionObserver(
 scrollObserver.observe(scrollSentinel);
 
 // ==============================
+// Modal Rendering
+// ==============================
+
+const renderModal = (pokemon) => {
+    const paddedId = String(pokemon.id).padStart(3, '0');
+
+    modalArtwork.src = pokemon.artwork || pokemon.sprite || '';
+    modalArtwork.alt = `${pokemon.displayName} artwork`;
+    modalName.textContent = pokemon.displayName;
+    modalNumber.textContent = `#${paddedId}`;
+    modalHeight.textContent = `Height: ${pokemon.height / 10} m`;
+    modalWeight.textContent = `Weight: ${pokemon.weight / 10} kg`;
+
+    modalTypes.innerHTML = '';
+    pokemon.types.forEach((t) => {
+        const badge = document.createElement('span');
+        badge.className = 'type-badge';
+        badge.dataset.type = t;
+        badge.textContent = t;
+        modalTypes.appendChild(badge);
+    });
+
+    modalGeneration.textContent = '';
+    modalSpecial.textContent = '';
+};
+
+const showModal = (pokemon) => {
+    renderModal(pokemon);
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    fetchAndRenderSpecies(pokemon);
+};
+
+const hideModal = () => {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    closeModal();
+};
+
+const openModalForIndex = (index) => {
+    openModal(index);
+    const pokemon = state.visiblePokemon[index];
+    showModal(pokemon);
+};
+
+const fetchAndRenderSpecies = async (pokemon) => {
+    modalGeneration.textContent = '';
+    modalSpecial.textContent = '';
+    modalLoading.textContent = 'Loading details...';
+    modalLoading.hidden = false;
+
+    try {
+        const generation = pokemon.generation
+            .replace('generation-', 'Gen ')
+            .toUpperCase();
+
+        const specials = [];
+        if (pokemon.isLegendary) specials.push('Legendary');
+        if (pokemon.isMythical) specials.push('Mythical');
+        if (pokemon.isBaby) specials.push('Baby');
+
+        modalGeneration.textContent = `Generation: ${generation}`;
+        modalSpecial.textContent = specials.length > 0 ? specials.join(' · ') : '';
+    } catch (error) {
+        modalGeneration.textContent = '';
+        modalSpecial.textContent = '';
+        console.error('[Modal] Failed to render species data:', error);
+    } finally {
+        modalLoading.hidden = true;
+    };
+};
+
+// ==============================
 // SIDEBAR RENDERING
 // ==============================
 
@@ -883,7 +970,7 @@ randomBtn.addEventListener('click', () => {
 
     const randomIndex = Math.floor(Math.random() * state.visiblePokemon.length);
 
-    openModal(randomIndex);
+    openModalForIndex(randomIndex);
 });
 
 gridViewBtn.addEventListener('click', () => {
@@ -927,6 +1014,51 @@ applyFiltersBtn.addEventListener('click', () => {
     runPipeline();
     renderFilterChips();
     updateApplyButton();
+})
+
+modalClose.addEventListener('click', () => hideModal());
+
+modalPrevBtn.addEventListener('click', () => {
+    modalPrev();
+    const pokemon = state.visiblePokemon[state.modal.currentIndex];
+    showModal(pokemon);
+});
+
+modalNextBtn.addEventListener('click', () => {
+    modalNext();
+    const pokemon = state.visiblePokemon[state.modal.currentIndex];
+    showModal(pokemon);
+});
+
+document.addEventListener('keydown', (e) => {
+    if (!state.modal.isOpen) return;
+
+    if (e.key === 'Escape') {
+        hideModal();
+    }
+
+    if (e.key === 'ArrowLeft') {
+        modalPrev();
+        const pokemon = state.visiblePokemon[state.modal.currentIndex];
+        showModal(pokemon)
+    }
+
+    if (e.key === 'ArrowRight') {
+        modalNext();
+        const pokemon = state.visiblePokemon[state.modal.currentIndex];
+        showModal(pokemon);
+    }
+});
+
+pokemonGrid.addEventListener('click', (e) => {
+    const card = e.target.closest('.poke-card');
+    if (!card) return;
+
+    const id = Number(card.dataset.id);
+    const index = state.visiblePokemon.findIndex((p) => p.id === id);
+    if (index === -1) return;
+
+    openModalForIndex(index);
 })
 
 
