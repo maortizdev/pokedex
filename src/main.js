@@ -6,7 +6,7 @@ const API_BASE = "https://pokeapi.co/api/v2";
 const TOTAL_POKEMON = 1025;
 const BATCH_SIZE = 50;
 const ENDPOINTS = {
-    pokemon: (identifier) => `${API_BASE}/pokemon/${identifier}`,
+    pokemon: (identifier) => `${API_BASE}/pokemon/${identifier}`
 };
 const DISPLAY_NAME_MAP = {
     // Special punctuation/symbols
@@ -98,6 +98,14 @@ const appShell = document.querySelector('#app');
 const pokemonGrid = document.querySelector('#pokemon-grid');
 const scrollSentinel = document.querySelector('#scroll-sentinel');
 const resultCount = document.querySelector('#result-count');
+const typeOptionsContainer = document.querySelector('#type-options');
+const generationOptionsContainer = document.querySelector('#generation-options');
+const typeModeRadios = document.querySelectorAll('input[name="type-mode"]');
+const specialCheckboxes = document.querySelectorAll('input[name="special"]');
+const applyFiltersBtn = document.querySelector('#apply-filters-btn');
+const filterChips = document.querySelector('#filter-chips');
+const specialOptions = document.querySelector('#special-options');
+const typeMode = document.querySelector('#type-mode');
 
 // ==============================
 // State
@@ -113,13 +121,13 @@ const state = {
     // --- Filters ------------------------------
     draftFilters: {         // Filters currently selected but not yet applied
         types: [],
-        typeMode: 'normal', // normal | single | dual 
+        typeMode: 'any', // any | single | dual 
         generations: [],    // any selected generations (OR logic)
         special: [],       // legendary | myhtical | baby (OR logic)
     },
     appliedFilters: {       // The confirmed filters the pipeline runs against
         types: [],
-        typeMode: 'normal', // normal | 'single' | 'dual'
+        typeMode: 'any', // any | 'single' | 'dual'
         generations: [],
         special: [],
     },
@@ -232,8 +240,8 @@ const modalPrev = () => {
 const resetAll = () => {
     state.searchDraft = '';
     state.activeSearch = '';
-    state.draftFilters = { types: [], typeMode: 'normal', generations: [], special: [] };
-    state.appliedFilters = { types: [], typeMode: 'normal', generations: [], special: [] };
+    state.draftFilters = { types: [], typeMode: 'any', generations: [], special: [] };
+    state.appliedFilters = { types: [], typeMode: 'any', generations: [], special: [] };
     state.sort = { by: 'id', direction: 'asc' };
     state.visiblePokemon = [];
     state.renderedSubset = [];
@@ -293,7 +301,7 @@ const filterPokemon = (pokemon) => {
         // Type filter: depends on selected mode
         let passesTypes = true;
         if (types.length > 0) {
-            if (typeMode === 'normal') {
+            if (typeMode === 'any') {
                 passesTypes = types.some((t) => p.types.includes(t));
 
             } else if (typeMode === 'single') {
@@ -301,7 +309,7 @@ const filterPokemon = (pokemon) => {
 
             } else if (typeMode === 'dual') {
                 passesTypes =
-                    types.length === 2 &&
+                    types.length > 0 &&
                     p.types.length === 2 &&
                     types.every((t) => p.types.includes(t));
             };
@@ -402,6 +410,7 @@ const fetchPokemonList = async () => {
 // name to handle forms like "giratina-altered" vs "giratina"
 const fetchPokemon = async (id) => {
     const data = await fetchData(ENDPOINTS.pokemon(id));
+    const speciesData = await fetchData(data.species.url);
     return {
         id: data.id,
         name: data.name,
@@ -413,6 +422,10 @@ const fetchPokemon = async (id) => {
         sprite: data.sprites.front_default,
         height: data.height,
         weight: data.weight,
+        generation: speciesData.generation.name,
+        isLegendary: speciesData.is_legendary,
+        isMythical: speciesData.is_mythical,
+        isBaby: speciesData.is_baby,
     };
 };
 
@@ -570,6 +583,219 @@ const scrollObserver = new IntersectionObserver(
 scrollObserver.observe(scrollSentinel);
 
 // ==============================
+// SIDEBAR RENDERING
+// ==============================
+
+const TYPES = [
+    'normal', 'fire', 'water', 'electric', 'grass', 'ice',
+    'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug',
+    'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy',
+];
+
+const GENERATIONS = [
+    { label: 'Gen 1', value: 'generation-i' },
+    { label: 'Gen 2', value: 'generation-ii' },
+    { label: 'Gen 3', value: 'generation-iii' },
+    { label: 'Gen 4', value: 'generation-iv' },
+    { label: 'Gen 5', value: 'generation-v' },
+    { label: 'Gen 6', value: 'generation-vi' },
+    { label: 'Gen 7', value: 'generation-vii' },
+    { label: 'Gen 8', value: 'generation-viii' },
+    { label: 'Gen 9', value: 'generation-ix' },
+];
+
+// Builds a type button for each of the 18 types.
+// Clicking a type toggles it in draftFilters.types (max 2)
+const renderTypeButtons = () => {
+    typeOptionsContainer.innerHTML = '';
+
+    TYPES.forEach((type) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = type;
+        btn.dataset.type = type;
+        btn.setAttribute('aria-pressed', 'false');
+
+        // If this type is already in the draft (e.g. after a clear), reflect it
+        if (state.draftFilters.types.includes(type)) {
+            btn.setAttribute('aria-pressed', 'true');
+            btn.classList.add('active');
+        }
+
+        btn.addEventListener('click', () => {
+            const current = [...state.draftFilters.types];
+
+            const index = current.indexOf(type);
+
+            if (index !== -1) {
+                current.splice(index, 1);
+            } else {
+                if (state.draftFilters.typeMode === 'dual' && current.length === 2) return;
+                current.push(type);
+            }
+
+            setDraftTypes(current);
+            updateTypeButtons();
+            updateApplyButton();
+        });
+        typeOptionsContainer.appendChild(btn);
+    });
+};
+
+// Syncs the visual active state of all the type buttons to draftFilters.types
+const updateTypeButtons = () => {
+    typeOptionsContainer.querySelectorAll('button').forEach((btn) => {
+        const isActive = state.draftFilters.types.includes(btn.dataset.type);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        btn.classList.toggle('active', isActive);
+    });
+
+    const isDualCapped = state.draftFilters.typeMode === 'dual' && state.draftFilters.types.length >= 2;
+    typeOptionsContainer.classList.toggle('is-capped', isDualCapped);
+};
+
+const renderGenerationOptions = () => {
+    generationOptionsContainer.innerHTML = '';
+
+    GENERATIONS.forEach((gen) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = gen.label;
+        btn.dataset.generation = gen.value;
+        btn.setAttribute('aria-pressed', 'false');
+
+        // If this type is already in the draft (e.g. after a clear), reflect it
+        if (state.draftFilters.generations.includes(gen.value)) {
+            btn.setAttribute('aria-pressed', 'true');
+            btn.classList.add('active');
+        }
+
+        btn.addEventListener('click', () => {
+            const current = [...state.draftFilters.generations];
+
+            const index = current.indexOf(gen.value);
+
+            if (index !== -1) {
+                current.splice(index, 1);
+            } else {
+                current.push(gen.value);
+            }
+            setDraftGenerations(current);
+            updateGenerationsButtons();
+            updateApplyButton();
+        });
+        generationOptionsContainer.appendChild(btn);
+    });
+};
+
+const updateGenerationsButtons = () => {
+    generationOptionsContainer.querySelectorAll('button').forEach((btn) => {
+        const isActive = state.draftFilters.generations.includes(btn.dataset.generation);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        btn.classList.toggle('active', isActive);
+    });
+};
+
+const syncSpecialCheckboxes = () => {
+    specialCheckboxes.forEach((cb) => {
+        cb.checked = state.draftFilters.special.includes(cb.value);
+    });
+};
+
+const syncTypeModeRadios = () => {
+    typeModeRadios.forEach((radio) => {
+        radio.checked = radio.value === state.draftFilters.typeMode;
+    });
+};
+
+const isDraftSameAsApplied = () => {
+    const d = state.draftFilters;
+    const a = state.appliedFilters;
+
+    const sameTypes = [...d.types].sort().join() === [...a.types].sort().join();
+    const sameTypeMode = d.typeMode === a.typeMode;
+    const sameGenerations = [...d.generations].sort().join() === [...a.generations].sort().join();
+    const sameSpecial = [...d.special].sort().join() === [...a.special].sort().join();
+
+    return sameTypes && sameTypeMode && sameGenerations && sameSpecial;
+};
+
+const updateApplyButton = () => {
+    applyFiltersBtn.disabled = isDraftSameAsApplied();
+};
+
+const renderFilterChips = () => {
+    filterChips.innerHTML = '';
+
+    const { types, typeMode, generations, special } = state.appliedFilters;
+
+    const chipsToRender = [];
+
+    types.forEach((t) => chipsToRender.push({ label: t, group: 'type', value: t }));
+
+    generations.forEach((g) => {
+        const match = GENERATIONS.find((gen) => gen.value === g);
+        chipsToRender.push({ label: match ? match.label : g, group: 'generation', value: g });
+    });
+
+    special.forEach((s) => chipsToRender.push({ label: s, group: 'special', value: s }));
+
+    chipsToRender.forEach(({ label, group, value }) => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+
+        const chipLabel = document.createElement('span');
+        chipLabel.textContent = label;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = 'x';
+        removeBtn.setAttribute('aria-label', `Remove ${label} filter`);
+
+        removeBtn.addEventListener('click', () => {
+            if (group === 'type') {
+                const updated = state.appliedFilters.types.filter((t) => t !== value);
+                state.appliedFilters.types = updated;
+                state.draftFilters.types = [...updated];
+
+                if (updated.length === 0) {
+                    state.appliedFilters.typeMode = 'any';
+                    state.draftFilters.typeMode = 'any';
+                }
+            }
+
+            if (group === 'generation') {
+                const updated = state.appliedFilters.generations.filter((g) => g !== value);
+                state.appliedFilters.generations = updated;
+                state.draftFilters.generations = [...updated];
+            }
+
+            if (group === 'special') {
+                const updated = state.appliedFilters.special.filter((s) => s !== value);
+                state.appliedFilters.special = updated;
+                state.draftFilters.special = [...updated];
+            }
+
+            runPipeline();
+            renderFilterChips();
+            syncSidebarToState();
+        });
+        chip.appendChild(chipLabel);
+        chip.appendChild(removeBtn);
+        filterChips.appendChild(chip);
+    });
+};
+
+const syncSidebarToState = () => {
+    updateTypeButtons();
+    updateGenerationsButtons();
+    syncSpecialCheckboxes();
+    syncTypeModeRadios();
+    updateApplyButton();
+};
+
+
+// ==============================
 // Load All Pokemon
 // =============================
 
@@ -604,7 +830,6 @@ const loadAllPokemon = async () => {
     }
 };
 
-loadAllPokemon();
 
 // ==============================
 // Event Listeners
@@ -621,6 +846,8 @@ clearEverythingBtn.addEventListener('click', () => {
     sortBtn.setAttribute('aria-label', 'Sort direction: ascending');
 
     runPipeline();
+    renderFilterChips();
+    syncSidebarToState();
 });
 
 searchInput.addEventListener('input', (e) => {
@@ -675,4 +902,35 @@ listViewBtn.addEventListener('click', () => {
     }
 });
 
+specialOptions.addEventListener('change', () => {
+    const checked = [...specialCheckboxes]
+        .filter((cb) => cb.checked)
+        .map((cb) => cb.value);
 
+    setDraftSpecial(checked);
+    updateApplyButton();
+});
+
+typeMode.addEventListener('change', (e) => {
+    const newMode = e.target.value;
+    setDraftTypeMode(newMode);
+
+    if (newMode === 'dual' && state.draftFilters.types.length > 2) {
+        setDraftTypes(state.draftFilters.types.slice(0, 2));
+    }
+    updateTypeButtons();
+    updateApplyButton();
+});
+
+applyFiltersBtn.addEventListener('click', () => {
+    applyFilters();
+    runPipeline();
+    renderFilterChips();
+    updateApplyButton();
+})
+
+
+renderTypeButtons();
+renderGenerationOptions();
+updateApplyButton();
+loadAllPokemon();

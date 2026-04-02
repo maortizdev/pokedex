@@ -114,6 +114,10 @@ input[type="radio"] {
     flex-direction: column
 }
 
+#app[hidden] {
+    display: none !important;
+}
+
 /* ---------- Topbar ---------- */
 #topbar {
     position: sticky;
@@ -350,6 +354,19 @@ input[type="radio"] {
 #type-options button:hover,
 #generation-options button:hover {
     background: color-mix(in srgb, var(--panel-2) 70%, var(--pokedex-red) 30%);
+}
+
+#type-options button[aria-pressed="true"],
+#generation-options button[aria-pressed="true"] {
+    background: color-mix(in srgb, white 60%, var(--pokedex-red) 40%);
+    border-color: color-mix(in srgb, var(--pokedex-red) 60%, var(--border) 40%);
+    color: color-mix(in srgb, var(--pokedex-red-2) 70%, var(--text) 30%);
+}
+
+#type-options.is-capped button[aria-pressed="false"] {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* Sidebar action buttons */
@@ -877,7 +894,7 @@ button:active,
 }
 
 /* ---------- EMPTY STATE ---------- */
-.epmty-state {
+.empty-state {
     grid-column: 1 / -1;
     text-align: center;
     padding: 48px 16px;
