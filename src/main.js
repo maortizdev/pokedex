@@ -120,6 +120,8 @@ const modalClose = document.querySelector('#modal-close');
 const modalPrevBtn = document.querySelector('#modal-prev');
 const modalNextBtn = document.querySelector('#modal-next');
 const modalLoading = document.querySelector('#modal-loading');
+const modalContent = document.querySelector('#modal-content');
+const modalAnnouncer = document.querySelector('#modal-announcer');
 
 // ==============================
 // State
@@ -157,6 +159,7 @@ const state = {
     modal: {
         isOpen: false,      // Whether the modal is currently open
         currentIndex: null,
+        triggerElement: null,
     },
     // --- View ------------------------------
     view: 'grid',
@@ -259,7 +262,7 @@ const resetAll = () => {
     state.sort = { by: 'id', direction: 'asc' };
     state.visiblePokemon = [];
     state.renderedSubset = [];
-    state.modal = { isOpen: false, currentIndex: null };
+    state.modal = { isOpen: false, currentIndex: null, triggerElement: null };
 };
 
 // --- Debug ------------------------------
@@ -622,24 +625,53 @@ const renderModal = (pokemon) => {
     modalGeneration.textContent = '';
     modalSpecial.textContent = '';
 };
+const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+const trapFocus = (e) => {
+    const focusableElements = [...modalContent.querySelectorAll(FOCUSABLE)];
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    if (e.key !== 'Tab') return;
+
+    if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+            e.preventDefault();
+            lastFocusable.focus();
+        }
+    } else {
+        if (document.activeElement === lastFocusable) {
+            e.preventDefault();
+            firstFocusable.focus();
+        }
+    }
+};
 
 const showModal = (pokemon) => {
     renderModal(pokemon);
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
     fetchAndRenderSpecies(pokemon);
+    modal.addEventListener('keydown', trapFocus);
+    announceModal(pokemon);
 };
 
 const hideModal = () => {
     modal.hidden = true;
     document.body.style.overflow = '';
+    clearAnnouncer();
+    modal.removeEventListener('keydown', trapFocus);
+    const trigger = state.modal.triggerElement;
     closeModal();
+    if (trigger) trigger.focus();
 };
 
-const openModalForIndex = (index) => {
+const openModalForIndex = (index, triggerEl = null) => {
+    state.modal.triggerElement = triggerEl;
     openModal(index);
     const pokemon = state.visiblePokemon[index];
     showModal(pokemon);
+    modalClose.focus();
 };
 
 const fetchAndRenderSpecies = async (pokemon) => {
@@ -667,6 +699,14 @@ const fetchAndRenderSpecies = async (pokemon) => {
     } finally {
         modalLoading.hidden = true;
     };
+};
+
+const announceModal = (pokemon) => {
+    modalAnnouncer.textContent = `${pokemon.displayName} details open`;
+};
+
+const clearAnnouncer = () => {
+    modalAnnouncer.textContent = '';
 };
 
 // ==============================
@@ -1058,7 +1098,7 @@ pokemonGrid.addEventListener('click', (e) => {
     const index = state.visiblePokemon.findIndex((p) => p.id === id);
     if (index === -1) return;
 
-    openModalForIndex(index);
+    openModalForIndex(index, card);
 })
 
 
