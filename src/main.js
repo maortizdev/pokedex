@@ -318,18 +318,17 @@ const filterPokemon = (pokemon) => {
         // Type filter: depends on selected mode
         let passesTypes = true;
         if (types.length > 0) {
-            if (typeMode === 'any') {
-                passesTypes = types.some((t) => p.types.includes(t));
-
-            } else if (typeMode === 'single') {
-                passesTypes = p.types.length === 1 && types.includes(p.types[0]);
-
-            } else if (typeMode === 'dual') {
-                passesTypes =
-                    types.length > 0 &&
-                    p.types.length === 2 &&
-                    types.every((t) => p.types.includes(t));
-            };
+            switch (typeMode) {
+                case 'any':
+                    passesTypes = types.some((t) => p.types.includes(t));
+                    break;
+                case 'single':
+                    passesTypes = p.types.length === 1 && types.includes(p.types[0]);
+                    break;
+                case 'dual':
+                    passesTypes = p.types.length === 2 && types.every((t) => p.types.includes(t));
+                    break;
+            }
         };
 
         // Generation filter: pokemon must match ANY selected generation (OR logic)
