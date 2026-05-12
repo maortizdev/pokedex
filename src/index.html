@@ -6,115 +6,275 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Pokédex</title>
         <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     </head>
 
     <body>
         <!-- Hidden because it is only visible at load and hides when all are loaded. -->
-        <div id="loading-screen" hidden>
-            <p id="loading-text">Loading Pokémon...
-                <span id="loading-progress">0 / 0</span>
-            </p>
+        <div id="loading-screen" class="hidden">
+            <span id="loading-progress">0 / 1025</span>
+            <p id="loading-text">Loading Pokémon...</p>
         </div>
 
         <header id="topbar">
             <h1 id="app-title">Pokédex</h1>
-            <input id="search-input" type="search">
-            <button>&#128269;</button>
+            <div id="search-container">
+                <input id="search-input" type="search" placeholder="Search a Pokémon...">
+                <button><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
         </header>
 
-        <aside id="filter-sidebar">
+        <aside id="filter-sidebar" class="hidden">
 
-            <h2>Filter By:</h2>
+            <div id="filter-header">
+                <h2>Filter By:</h2>
+                <button>x</button>
+            </div>
+            <div id="filter-type">
+                <h3>Type</h3>
+                <div id="type-mode">
+                    <h4>Mode:</h4>
+                    <div id="type-mode-options">
+                        <label><input type="radio" name="type-mode" value="any">Any</label>
+                        <label><input type="radio" name="type-mode" value="single">Single only</label>
+                        <label><input type="radio" name="type-mode" value="dual">Dual only</label>
+                    </div>
+                </div>
+                <div id="type-selection">
+                    <h4>Select Type(s):</h4>
+                    <div id="type-options">
+                        <label><input type="checkbox" value="normal">Normal</label>
+                        <label><input type="checkbox" value="grass">Grass</label>
+                        <label><input type="checkbox" value="fire">Fire</label>
+                        <label><input type="checkbox" value="water">Water</label>
+                        <label><input type="checkbox" value="electric">Electric</label>
+                        <label><input type="checkbox" value="psychic">Psychic</label>
+                        <label><input type="checkbox" value="fighting">Fighting</label>
+                        <label><input type="checkbox" value="dark">Dark</label>
+                        <label><input type="checkbox" value="steel">Steel</label>
+                        <label><input type="checkbox" value="dragon">Dragon</label>
+                        <label><input type="checkbox" value="fairy">Fairy</label>
+                        <label><input type="checkbox" value="ice">Ice</label>
+                        <label><input type="checkbox" value="ground">Ground</label>
+                        <label><input type="checkbox" value="rock">Rock</label>
+                        <label><input type="checkbox" value="bug">Bug</label>
+                        <label><input type="checkbox" value="ghost">Ghost</label>
+                        <label><input type="checkbox" value="flying">Flying</label>
+                        <label><input type="checkbox" value="poison">Poison</label>
+                    </div>
 
-            <h3>Type</h3>
+                </div>
+            </div>
 
-            <h4 id="type-mode">Type Mode</h4>
-            <label><input type="radio" name="type-mode" value="any">Any</label>
-            <label><input type="radio" name="type-mode" value="single">Single only</label>
-            <label><input type="radio" name="type-mode" value="dual">Dual only</label>
+            <div id="filter-generation">
+                <h3>Generation</h3>
+                <div id="generation-options">
+                    <label><input type="checkbox" value="gen-i">Gen 1</label>
+                    <label><input type="checkbox" value="gen-ii">Gen 2</label>
+                    <label><input type="checkbox" value="gen-iii">Gen 3</label>
+                    <label><input type="checkbox" value="gen-iv">Gen 4</label>
+                    <label><input type="checkbox" value="gen-v">Gen 5</label>
+                    <label><input type="checkbox" value="gen-vi">Gen 6</label>
+                    <label><input type="checkbox" value="gen-vii">Gen 7</label>
+                    <label><input type="checkbox" value="gen-viii">Gen 8</label>
+                    <label><input type="checkbox" value="gen-ix">Gen 9</label>
+                </div>
+            </div>
 
-            <h4>Select Type(s)</h4>
-            <label><input type="checkbox" value="normal">Normal</label>
-            <label><input type="checkbox" value="grass">Grass</label>
-            <label><input type="checkbox" value="fire">Fire</label>
-            <label><input type="checkbox" value="water">Water</label>
-            <label><input type="checkbox" value="electric">Electric</label>
-            <label><input type="checkbox" value="psychic">Psychic</label>
-            <label><input type="checkbox" value="fighting">Fighting</label>
-            <label><input type="checkbox" value="dark">Dark</label>
-            <label><input type="checkbox" value="steel">Steel</label>
-            <label><input type="checkbox" value="dragon">Dragon</label>
-            <label><input type="checkbox" value="fairy">Fairy</label>
-            <label><input type="checkbox" value="ice">Ice</label>
-            <label><input type="checkbox" value="ground">Ground</label>
-            <label><input type="checkbox" value="rock">Rock</label>
-            <label><input type="checkbox" value="bug">Bug</label>
-            <label><input type="checkbox" value="ghost">Ghost</label>
-            <label><input type="checkbox" value="flying">Flying</label>
-            <label><input type="checkbox" value="poison">Poison</label>
+            <div id="filter-special">
+                <h3>Special Category</h3>
+                <div id="special-options">
+                    <label><input type="checkbox" value="legendary">Legendary</label>
+                    <label><input type="checkbox" value="mythical">Mythical</label>
+                    <label><input type="checkbox" value="baby">Baby</label>
+                </div>
+            </div>
 
-            <h3>Generation</h3>
-            <label><input type="checkbox" value="gen-i">Gen 1</label>
-            <label><input type="checkbox" value="gen-ii">Gen 2</label>
-            <label><input type="checkbox" value="gen-iii">Gen 3</label>
-            <label><input type="checkbox" value="gen-iv">Gen 4</label>
-            <label><input type="checkbox" value="gen-v">Gen 5</label>
-            <label><input type="checkbox" value="gen-vi">Gen 6</label>
-            <label><input type="checkbox" value="gen-vii">Gen 7</label>
-            <label><input type="checkbox" value="gen-viii">Gen 8</label>
-            <label><input type="checkbox" value="gen-ix">Gen 9</label>
-
-            <h3>Special Category</h3>
-            <label><input type="checkbox" value="legendary">Legendary</label>
-            <label><input type="checkbox" value="mythical">Mythical</label>
-            <label><input type="checkbox" value="baby">Baby</label>
-
-            <button>Reset Filters</button>
+            <button id="reset-filters-btn">Reset Filters</button>
         </aside>
 
         <main id="main-content">
-            <span id="filter-chips">
-                <button class="close-btn">x</button>
-            </span>
 
-            <!-- Generated by JS -->
-            <p id="result-count"></p>
+            <div id="results-feedback">
+                <span id="filter-chips">
+                    <button class="close-btn">Fire x</button>
+                </span>
 
-            <label for="sort-by">Sort by</label>
-            <select id="sort-by">
-                <option value="">-</option>
-                <option value="id-asc">Number ↑</option>
-                <option value="id-desc">Number ↓</option>
-                <option value="name-asc">A-Z</option>
-                <option value="name-desc">Z-A</option>
-                <option value="height-asc">Smallest to biggest</option>
-                <option value="height-desc">Biggest to smallest</option>
-                <option value="weight-asc">Lightest to heaviest </option>
-                <option value="weight-desc">Heaviest to lightest</option>
-            </select>
+                <!-- Generated by JS -->
+                <p id="result-count">1000 results found</p>
+            </div>
+
+            <div id="grid-controls">
+                <button id="filter-toggle">
+                    <i class="fa-solid fa-filter"></i>
+                    Filters
+                </button>
+
+                <!-- <label for="sort-by">Sort by</label> -->
+                <div id="sort-by">
+                    <i class="fa-solid fa-sort"></i>
+                    Sort
+                </div>
+            </div>
+
+            <div id="sort-options" class="hidden">
+                <h2>Sort by</h2>
+                <div id="sort-options-buttons">
+                    <button value="id-asc">Number ↑</button>
+                    <button value="name-asc">A-Z</button>
+                    <button value="height-asc">Smallest</button>
+                    <button value="weight-asc">Lightest</button>
+                    <button value="id-desc">Number ↓</button>
+                    <button value="name-desc">Z-A</button>
+                    <button value="height-desc">Tallest</button>
+                    <button value="weight-desc">Heaviest</button>
+                </div>
+            </div>
 
             <section id="pokemon-grid">
                 <!-- Cards generated by JS -->
+                <div class="card-container">
+                    <div class="card-top">
+                        <div class="card-number">
+                            <p>0008</p>
+                        </div>
+                        <div class="card-name">
+                            <p>Crabominable</p>
+                        </div>
+                    </div>
+                    <div class="card-middle">
+                        <img class="card-image"
+                            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"
+                            alt="">
+                    </div>
+                    <div class="card-bottom">
+                        <div class="type-1">
+                            <p>Electric</p>
+                        </div>
+                        <div class="type-2">
+                            <p>Poison</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-container">
+                    <div class="card-top">
+                        <div class="card-number">
+                            <p>0001</p>
+                        </div>
+                        <div class="card-name">
+                            <p>Bulbasaur</p>
+                        </div>
+                    </div>
+                    <div class="card-middle">
+                        <img class="card-image"
+                            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"
+                            alt="">
+                    </div>
+                    <div class="card-bottom">
+                        <div class="type-1">
+                            <p>Grass</p>
+                        </div>
+                        <div class="type-2">
+                            <p>Poison</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container">
+                    <div class="card-top">
+                        <div class="card-number">
+                            <p>0001</p>
+                        </div>
+                        <div class="card-name">
+                            <p>Bulbasaur</p>
+                        </div>
+                    </div>
+                    <div class="card-middle">
+                        <img class="card-image"
+                            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"
+                            alt="">
+                    </div>
+                    <div class="card-bottom">
+                        <div class="type-1">
+                            <p>Grass</p>
+                        </div>
+                        <div class="type-2">
+                            <p>Poison</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container">
+                    <div class="card-top">
+                        <div class="card-number">
+                            <p>0001</p>
+                        </div>
+                        <div class="card-name">
+                            <p>Bulbasaur</p>
+                        </div>
+                    </div>
+                    <div class="card-middle">
+                        <img class="card-image"
+                            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"
+                            alt="">
+                    </div>
+                    <div class="card-bottom">
+                        <div class="type-1">
+                            <p>Grass</p>
+                        </div>
+                        <div class="type-2">
+                            <p>Poison</p>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Generated by JS -->
             <div id="scroll-sentinel"></div>
         </main>
 
-        <div id="modal-container">
+        <div id="modal-container" class="hidden">
             <button class="close-btn">x</button>
-            <button class="modal-nav-button" id="modal-nav-prev"></button>
-            <button class="modal-nav-button" id="modal-nav-next"></button>
-            <h2 id="modal-name"></h2>
-            <p id="modal-number"></p>
-            <img src="" alt="" id="modal-img">
-            <p id="modal-type"></p>
-            <p id="modal-height"></p>
-            <p id="modal-weight"></p>
-            <p id="modal-generation"></p>
-            <p id="modal-special"></p>
-        </div>
+            <div id="modal-nav">
+                <button class="modal-nav-button" id="modal-nav-prev">Previous</button>
+                <button class="modal-nav-button" id="modal-nav-next">Next</button>
+            </div>
 
+            <h2 class="modal-name">Bulbasaur</h2>
+            <p class="modal-number">#0001</p>
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"
+                alt="" class="modal-img">
+
+            <div id="modal-info-container">
+                <div id="modal-types-container">
+                    <h3>Type(s)</h3>
+                    <div id="modal-types">
+                        <p class="modal-type-primary">Grass</p>
+                        <p class="modal-type-secondary">Poison</p>
+                    </div>
+                </div>
+                <div id="modal-measurements">
+                    <div class="modal-height">
+                        <h3>Height</h3>
+                        <p>2' 04"</p>
+                    </div>
+                    <div class="modal-weight">
+                        <h3>Weight</h3>
+                        <p>15.2 lbs</p>
+                    </div>
+                </div>
+                <div class="modal-generation">
+                    <h3>Generation</h3>
+                    <p>Gen 1</p>
+                </div>
+                <div class="modal-special">
+                    <h3>Special Category</h3>
+                    <p>Legendary</p>
+                </div>
+            </div>
+
+
+        </div>
 
         <script src="main.js"></script>
     </body>
