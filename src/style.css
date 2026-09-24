@@ -6,9 +6,9 @@ root {
 
 * {
     box-sizing: border-box;
-    padding: 0;
+    padding: 0 10px;
     margin: 0;
-    border: 1px solid red;
+    /* border: 1px solid red; */
 }
 
 body {
@@ -17,10 +17,9 @@ body {
     line-height: 1.5;
 }
 
-ul, ol {
+/* ul, ol {
     list-style: none;
-}
-
+} */
 h1, h2, h3, h4, button, input, label {
     line-height: 1.1;
 }
@@ -242,7 +241,7 @@ button {
 }
 
 #pokemon-grid {
-    display: grid;
+    display: block;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     padding: 20px;
