@@ -10,6 +10,9 @@ const ENDPOINTS = {
 };
 
 const allPokemon = [];
+let visiblePokemon = [];
+
+console.log(allPokemon);
 
 const DISPLAY_NAME_OVERRIDES = {
     'nidoran-f': 'Nidoran♀', // 29
@@ -28,6 +31,11 @@ const DISPLAY_NAME_OVERRIDES = {
     'mr-rime': 'Mr. Rime', // 866
 };
 
+const SEARCH_KEY_MAP = {
+    '♀': 'f',
+    '♂': 'm',
+};
+
 // ==============================
 //         DOM REFERENCES
 // ==============================
@@ -36,9 +44,34 @@ const loadingScreen = document.querySelector('#loading-screen');
 const loadingProgress = document.querySelector('#loadingProgress');
 const pokemonGrid = document.querySelector('#pokemon-grid');
 const pokemonList = document.querySelector('#pokemon-list');
+const searchInput = document.querySelector('#search-input');
 
 // ==============================
-//        FETCH FUNCTIONS
+//           UTILITIES
+// ==============================
+
+const toDisplayName = (speciesName) => {
+    if (DISPLAY_NAME_OVERRIDES[speciesName]) return DISPLAY_NAME_OVERRIDES[speciesName];
+    return speciesName
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+
+const toSearchKey = (str) => {
+    return str
+        .toLowerCase()
+        .replace(/[♀♂]/g, (char) => SEARCH_KEY_MAP[char])
+        .replace(/\bfemale\b/g, 'f')
+        .replace(/\bmale\b/g, 'm')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '')
+}
+
+// ==============================
+//           FETCH FUNCTIONS
 // ==============================
 
 const fetchData = async (url) => {
@@ -64,20 +97,10 @@ const fetchPokemon = async (id) => {
         id: data.id,
         name: data.name,
         speciesName: data.species.name,
+        searchKey: toSearchKey(data.species.name)
     };
 };
 
-// ==============================
-//           UTILITIES
-// ==============================
-
-const toDisplayName = (speciesName) => {
-    if (DISPLAY_NAME_OVERRIDES[speciesName]) return DISPLAY_NAME_OVERRIDES[speciesName];
-    return speciesName
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-}
 // ==============================
 //           RENDERING
 // ==============================
@@ -90,20 +113,35 @@ const renderCard = (pokemon) => {
 };
 
 // ==============================
-//          LOAD POKEMON
+//           FEATURES
+// ==============================
+const handleSearchInput = (e) => {
+    const query = toSearchKey(e.target.value);
+    pokemonList.innerHTML = '';
+    visiblePokemon = allPokemon.filter(pokemon => pokemon.searchKey.includes(query));
+
+    console.log(visiblePokemon.length);
+    visiblePokemon.forEach(pokemon => renderCard(pokemon));
+};
+
+// ==============================
+//        LOADING POKEMON
 // ==============================
 
 const loadPokemon = async () => {
     for (let i = 1; i <= TOTAL_POKEMON; i++) {
         let fetchedPokemon = await fetchPokemon(i);
         allPokemon.push(fetchedPokemon);
-        renderCard(fetchedPokemon);
     }
+    visiblePokemon = allPokemon;
+    visiblePokemon.forEach(pokemon => renderCard(pokemon))
 };
 
 // ==============================
 //        EVENT LISTENERS
 // ==============================
+
+searchInput.addEventListener('input', handleSearchInput);
 
 // ==============================
 //          EXECUTABLES
