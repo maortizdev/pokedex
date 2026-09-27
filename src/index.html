@@ -21,78 +21,9 @@
             <h1 id="app-title">Pokédex</h1>
             <div id="search-container">
                 <input id="search-input" type="search" placeholder="Search a Pokémon...">
-                <button><i class="fa-solid fa-magnifying-glass"></i></button>
+                <!-- <button><i class="fa-solid fa-magnifying-glass"></i></button> -->
             </div>
         </header>
-
-        <aside id="filter-sidebar" class="hidden">
-
-            <div id="filter-header">
-                <h2>Filter By:</h2>
-                <button>x</button>
-            </div>
-            <div id="filter-type">
-                <h3>Type</h3>
-                <div id="type-mode">
-                    <h4>Mode:</h4>
-                    <div id="type-mode-options">
-                        <label><input type="radio" name="type-mode" value="any">Any</label>
-                        <label><input type="radio" name="type-mode" value="single">Single only</label>
-                        <label><input type="radio" name="type-mode" value="dual">Dual only</label>
-                    </div>
-                </div>
-                <div id="type-selection">
-                    <h4>Select Type(s):</h4>
-                    <div id="type-options">
-                        <label><input type="checkbox" value="normal">Normal</label>
-                        <label><input type="checkbox" value="grass">Grass</label>
-                        <label><input type="checkbox" value="fire">Fire</label>
-                        <label><input type="checkbox" value="water">Water</label>
-                        <label><input type="checkbox" value="electric">Electric</label>
-                        <label><input type="checkbox" value="psychic">Psychic</label>
-                        <label><input type="checkbox" value="fighting">Fighting</label>
-                        <label><input type="checkbox" value="dark">Dark</label>
-                        <label><input type="checkbox" value="steel">Steel</label>
-                        <label><input type="checkbox" value="dragon">Dragon</label>
-                        <label><input type="checkbox" value="fairy">Fairy</label>
-                        <label><input type="checkbox" value="ice">Ice</label>
-                        <label><input type="checkbox" value="ground">Ground</label>
-                        <label><input type="checkbox" value="rock">Rock</label>
-                        <label><input type="checkbox" value="bug">Bug</label>
-                        <label><input type="checkbox" value="ghost">Ghost</label>
-                        <label><input type="checkbox" value="flying">Flying</label>
-                        <label><input type="checkbox" value="poison">Poison</label>
-                    </div>
-
-                </div>
-            </div>
-
-            <div id="filter-generation">
-                <h3>Generation</h3>
-                <div id="generation-options">
-                    <label><input type="checkbox" value="gen-i">Gen 1</label>
-                    <label><input type="checkbox" value="gen-ii">Gen 2</label>
-                    <label><input type="checkbox" value="gen-iii">Gen 3</label>
-                    <label><input type="checkbox" value="gen-iv">Gen 4</label>
-                    <label><input type="checkbox" value="gen-v">Gen 5</label>
-                    <label><input type="checkbox" value="gen-vi">Gen 6</label>
-                    <label><input type="checkbox" value="gen-vii">Gen 7</label>
-                    <label><input type="checkbox" value="gen-viii">Gen 8</label>
-                    <label><input type="checkbox" value="gen-ix">Gen 9</label>
-                </div>
-            </div>
-
-            <div id="filter-special">
-                <h3>Special Category</h3>
-                <div id="special-options">
-                    <label><input type="checkbox" value="legendary">Legendary</label>
-                    <label><input type="checkbox" value="mythical">Mythical</label>
-                    <label><input type="checkbox" value="baby">Baby</label>
-                </div>
-            </div>
-
-            <button id="reset-filters-btn">Reset Filters</button>
-        </aside>
 
         <main id="main-content">
 
@@ -107,16 +38,85 @@
 
             <div id="grid-controls">
                 <button id="filter-toggle">
-                    <i class="fa-solid fa-filter"></i>
+                    <!-- <i class="fa-solid fa-filter"></i> -->
                     Filters
                 </button>
 
                 <!-- <label for="sort-by">Sort by</label> -->
                 <div id="sort-by">
-                    <i class="fa-solid fa-sort"></i>
+                    <!-- <i class="fa-solid fa-sort"></i> -->
                     Sort
                 </div>
             </div>
+
+            <aside id="filter-sidebar" class="hidden">
+
+                <div id="filter-header">
+                    <h2>Filter By:</h2>
+                    <button>x</button>
+                </div>
+                <div id="filter-type">
+                    <h3>Type</h3>
+                    <div id="type-mode">
+                        <h4>Mode:</h4>
+                        <div id="type-mode-options">
+                            <label><input type="radio" name="type-mode" value="any">Any</label>
+                            <label><input type="radio" name="type-mode" value="single">Single only</label>
+                            <label><input type="radio" name="type-mode" value="dual">Dual only</label>
+                        </div>
+                    </div>
+                    <div id="type-selection">
+                        <h4>Select Type(s):</h4>
+                        <div id="type-options">
+                            <label><input type="checkbox" value="normal">Normal</label>
+                            <label><input type="checkbox" value="grass">Grass</label>
+                            <label><input type="checkbox" value="fire">Fire</label>
+                            <label><input type="checkbox" value="water">Water</label>
+                            <label><input type="checkbox" value="electric">Electric</label>
+                            <label><input type="checkbox" value="psychic">Psychic</label>
+                            <label><input type="checkbox" value="fighting">Fighting</label>
+                            <label><input type="checkbox" value="dark">Dark</label>
+                            <label><input type="checkbox" value="steel">Steel</label>
+                            <label><input type="checkbox" value="dragon">Dragon</label>
+                            <label><input type="checkbox" value="fairy">Fairy</label>
+                            <label><input type="checkbox" value="ice">Ice</label>
+                            <label><input type="checkbox" value="ground">Ground</label>
+                            <label><input type="checkbox" value="rock">Rock</label>
+                            <label><input type="checkbox" value="bug">Bug</label>
+                            <label><input type="checkbox" value="ghost">Ghost</label>
+                            <label><input type="checkbox" value="flying">Flying</label>
+                            <label><input type="checkbox" value="poison">Poison</label>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="filter-generation">
+                    <h3>Generation</h3>
+                    <div id="generation-options">
+                        <label><input type="checkbox" value="gen-i">Gen 1</label>
+                        <label><input type="checkbox" value="gen-ii">Gen 2</label>
+                        <label><input type="checkbox" value="gen-iii">Gen 3</label>
+                        <label><input type="checkbox" value="gen-iv">Gen 4</label>
+                        <label><input type="checkbox" value="gen-v">Gen 5</label>
+                        <label><input type="checkbox" value="gen-vi">Gen 6</label>
+                        <label><input type="checkbox" value="gen-vii">Gen 7</label>
+                        <label><input type="checkbox" value="gen-viii">Gen 8</label>
+                        <label><input type="checkbox" value="gen-ix">Gen 9</label>
+                    </div>
+                </div>
+
+                <div id="filter-special">
+                    <h3>Special Category</h3>
+                    <div id="special-options">
+                        <label><input type="checkbox" value="legendary">Legendary</label>
+                        <label><input type="checkbox" value="mythical">Mythical</label>
+                        <label><input type="checkbox" value="baby">Baby</label>
+                    </div>
+                </div>
+
+                <button id="reset-filters-btn">Reset Filters</button>
+            </aside>
 
             <div id="sort-options" class="hidden">
                 <h2>Sort by</h2>
