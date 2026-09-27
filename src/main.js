@@ -11,6 +11,7 @@ const ENDPOINTS = {
 
 const allPokemon = [];
 let visiblePokemon = [];
+let activeSort = 'id-asc';
 
 console.log(allPokemon);
 
@@ -45,6 +46,11 @@ const loadingProgress = document.querySelector('#loadingProgress');
 const pokemonGrid = document.querySelector('#pokemon-grid');
 const pokemonList = document.querySelector('#pokemon-list');
 const searchInput = document.querySelector('#search-input');
+const sortButtonsContainer = document.querySelector('#sort-options-buttons');
+const sortToggle = document.querySelector('#sort-by');
+const sortOptionsDiv = document.querySelector('#sort-options');
+const filterContainer = document.querySelector('#filter-sidebar');
+const filterToggle = document.querySelector('#filter-toggle');
 
 // ==============================
 //           UTILITIES
@@ -56,7 +62,7 @@ const toDisplayName = (speciesName) => {
         .split('-')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-}
+};
 
 
 const toSearchKey = (str) => {
@@ -68,6 +74,11 @@ const toSearchKey = (str) => {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]/g, '')
+};
+
+const renderGrid = (pokemonArray) => {
+    pokemonList.innerHTML = '';
+    pokemonArray.forEach(pokemon => renderCard(pokemon));
 }
 
 // ==============================
@@ -85,19 +96,15 @@ const fetchData = async (url) => {
     }
 };
 
-// const fetchAllPokemon = async () => {
-//     const data = await fetchData(`${API_BASE}/pokemon?limit=${TOTAL_POKEMON}`);
-//     console.log(data.results);
-//     return data.results;
-// };
-
 const fetchPokemon = async (id) => {
     const data = await fetchData(ENDPOINTS.pokemon(id));
     return {
         id: data.id,
         name: data.name,
         speciesName: data.species.name,
-        searchKey: toSearchKey(data.species.name)
+        searchKey: toSearchKey(data.species.name),
+        weight: data.weight,
+        height: data.height
     };
 };
 
@@ -115,13 +122,31 @@ const renderCard = (pokemon) => {
 // ==============================
 //           FEATURES
 // ==============================
-const handleSearchInput = (e) => {
+const searchPokemon = (e) => {
     const query = toSearchKey(e.target.value);
-    pokemonList.innerHTML = '';
     visiblePokemon = allPokemon.filter(pokemon => pokemon.searchKey.includes(query));
 
     console.log(visiblePokemon.length);
-    visiblePokemon.forEach(pokemon => renderCard(pokemon));
+    renderGrid(visiblePokemon);
+};
+
+const sortPokemon = (sortValue) => {
+    const [sortBy, direction] = sortValue.split('-');
+
+    visiblePokemon.sort((a, b) => {
+        let comparison = 0;
+
+        if (sortBy === 'name') {
+            comparison = a.speciesName.localeCompare(b.speciesName);
+        } else {
+            comparison = a[sortBy] - b[sortBy];
+        }
+
+        if (comparison === 0) return a.id - b.id;
+        return direction === 'desc' ? comparison * -1 : comparison;
+    });
+
+    renderGrid(visiblePokemon);
 };
 
 // ==============================
@@ -134,14 +159,32 @@ const loadPokemon = async () => {
         allPokemon.push(fetchedPokemon);
     }
     visiblePokemon = allPokemon;
-    visiblePokemon.forEach(pokemon => renderCard(pokemon))
+    renderGrid(visiblePokemon);
 };
 
 // ==============================
 //        EVENT LISTENERS
 // ==============================
 
-searchInput.addEventListener('input', handleSearchInput);
+searchInput.addEventListener('input', searchPokemon);
+
+sortToggle.addEventListener('click', () => {
+    sortOptionsDiv.classList.toggle('hidden');
+});
+
+filterToggle.addEventListener('click', () => {
+    filterContainer.classList.toggle('hidden');
+});
+
+sortButtonsContainer.addEventListener('click', (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+
+    activeSort = button.value;
+    sortPokemon(activeSort);
+
+    sortOptionsDiv.classList.add('hidden');
+});
 
 // ==============================
 //          EXECUTABLES
